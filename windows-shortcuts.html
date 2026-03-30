@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows Keyboard Shortcut Cheatsheet</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #b8ae9c;
+    --bg-warm: #c5bdb0;
+    --panel: #d8d2c6;
+    --panel-light: #e6e1d7;
+    --panel-dark: #a89e8e;
+    --highlight: #f0ece4;
+    --shadow: #8a8070;
+    --shadow-deep: #6e655a;
+    --purple: #5c4a8a;
+    --purple-bright: #7b61ff;
+    --purple-light: #9b88cc;
+    --purple-dim: #3e3260;
+    --gold: #d4952a;
+    --gold-light: #f0c060;
+    --red: #c04040;
+    --cyan: #2a8a8a;
+    --text: #1e1b18;
+    --text-dim: #6b6358;
+    --text-light: #f0ece4;
+    --mono: 'IBM Plex Mono', 'Courier New', 'Menlo', 'Consolas', monospace;
+    --sans: 'IBM Plex Sans', 'Lucida Grande', 'Geneva', 'Helvetica', sans-serif;
+    --bevel-out: inset -1px -1px 0 var(--shadow), inset 1px 1px 0 var(--highlight), inset -2px -2px 0 var(--shadow-deep), inset 2px 2px 0 #f8f5f0;
+    --bevel-in: inset 1px 1px 0 var(--shadow), inset -1px -1px 0 var(--highlight), inset 2px 2px 0 var(--shadow-deep), inset -2px -2px 0 #f8f5f0;
+    --bevel-out-sm: inset -1px -1px 0 var(--shadow), inset 1px 1px 0 var(--highlight);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    /* Subtle crosshatch texture */
+    background-image:
+      linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%),
+      linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%);
+    background-size: 4px 4px;
+    background-position: 0 0, 2px 2px;
+  }
+
+  /* ── Window chrome ── */
+  .window {
+    max-width: 1100px;
+    margin: 24px auto;
+    border: 2px solid var(--shadow-deep);
+    box-shadow: var(--bevel-out), 4px 4px 12px rgba(0,0,0,0.25);
+    background: var(--panel);
+  }
+
+  .title-bar {
+    background: linear-gradient(180deg, #7a64b8 0%, var(--purple) 40%, var(--purple-dim) 100%);
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 2px solid var(--shadow-deep);
+    user-select: none;
+  }
+
+  .title-btn {
+    width: 14px;
+    height: 14px;
+    border: 1px solid rgba(0,0,0,0.4);
+    box-shadow: inset -1px -1px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.3);
+  }
+
+  .btn-close { background: #e05050; }
+  .btn-min { background: #d4952a; }
+  .btn-max { background: #50a850; }
+
+  .title-text {
+    flex: 1;
+    text-align: center;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-light);
+    letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 20px 24px 16px;
+    background: var(--panel-light);
+    border-bottom: 2px solid var(--shadow);
+    box-shadow: inset 0 -1px 0 var(--highlight);
+  }
+
+  .header h1 {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--purple);
+    letter-spacing: 0.5px;
+  }
+
+  .header .subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    font-family: var(--mono);
+    letter-spacing: 0.3px;
+  }
+
+  .header .meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .meta-val { color: var(--purple); font-weight: 600; }
+  .meta-label { color: var(--text-dim); }
+
+  /* ── Search ── */
+  .search-wrap {
+    padding: 10px 24px;
+    background: var(--panel);
+    border-bottom: 2px solid var(--shadow);
+    box-shadow: inset 0 -1px 0 var(--highlight);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .search-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .search-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .search-box {
+    flex: 1;
+    background: #fff;
+    border: none;
+    box-shadow: var(--bevel-in);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 7px 10px;
+    outline: none;
+  }
+
+  .search-box::placeholder { color: #a09888; }
+  .search-box:focus { box-shadow: var(--bevel-in), 0 0 0 2px rgba(123,97,255,0.3); }
+
+  .search-stats {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    display: none;
+  }
+
+  .search-stats.active { display: block; }
+
+  /* ── Category nav ── */
+  .cat-nav {
+    display: flex;
+    gap: 2px;
+    padding: 8px 24px;
+    background: var(--panel);
+    border-bottom: 2px solid var(--shadow);
+    box-shadow: inset 0 -1px 0 var(--highlight);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .cat-nav::-webkit-scrollbar { display: none; }
+
+  .cat-btn {
+    background: var(--panel-light);
+    border: none;
+    box-shadow: var(--bevel-out-sm);
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .cat-btn:hover {
+    background: var(--highlight);
+    color: var(--text);
+  }
+
+  .cat-btn:active, .cat-btn.active {
+    box-shadow: var(--bevel-in);
+    background: var(--bg-warm);
+    color: var(--purple);
+    font-weight: 700;
+  }
+
+  /* ── Content ── */
+  .content { padding: 16px 24px 40px; }
+
+  /* ── Section ── */
+  .section { margin-top: 24px; }
+
+  .section-bar {
+    background: linear-gradient(180deg, #7a64b8 0%, var(--purple) 50%, var(--purple-dim) 100%);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 2px solid var(--shadow-deep);
+    box-shadow: var(--bevel-out-sm);
+    margin-bottom: 12px;
+  }
+
+  .section-icon { font-size: 16px; }
+
+  .section-title {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-light);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+
+  .section-count {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+  }
+
+  /* ── Shortcut grid ── */
+  .shortcut-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 3px;
+  }
+
+  .shortcut-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: var(--panel-light);
+    border: 1px solid var(--shadow);
+    box-shadow: inset -1px -1px 0 var(--shadow), inset 1px 1px 0 var(--highlight);
+    transition: background 0.15s;
+    min-height: 34px;
+  }
+
+  .shortcut-row:hover {
+    background: #eee8dc;
+  }
+
+  .keys {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    min-width: 120px;
+    justify-content: flex-end;
+  }
+
+  .key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 22px;
+    padding: 0 6px;
+    background: linear-gradient(180deg, #f0ece4 0%, #d4d0c6 40%, #c8c0b4 100%);
+    border: 1px solid var(--shadow);
+    box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 var(--shadow-deep), 0 1px 2px rgba(0,0,0,0.2);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--purple-dim);
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+
+  .key-plus {
+    font-size: 9px;
+    color: var(--text-dim);
+    margin: 0 1px;
+  }
+
+  .desc {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border: 1px solid;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .tag-win11 { color: var(--purple-bright); border-color: rgba(123,97,255,0.4); background: rgba(123,97,255,0.08); }
+  .tag-admin { color: var(--red); border-color: rgba(192,64,64,0.4); background: rgba(192,64,64,0.08); }
+  .tag-terminal { color: var(--cyan); border-color: rgba(42,138,138,0.4); background: rgba(42,138,138,0.08); }
+
+  /* ── Divider in grid ── */
+  .sub-header {
+    grid-column: 1 / -1;
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 10px 4px;
+    border-bottom: 1px solid var(--shadow);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    background: var(--panel-light);
+    border-top: 2px solid var(--shadow);
+    box-shadow: inset 0 1px 0 var(--highlight);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Highlight ── */
+  mark {
+    background: rgba(123, 97, 255, 0.2);
+    color: var(--purple-dim);
+    padding: 0 2px;
+    border-radius: 1px;
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 700px) {
+    .window { margin: 0; border-left: none; border-right: none; }
+    .shortcut-grid { grid-template-columns: 1fr; }
+    .header, .content, .search-wrap, .cat-nav, .footer { padding-left: 12px; padding-right: 12px; }
+    .keys { min-width: 90px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window" id="app">
+  <div class="title-bar">
+    <div class="title-btn btn-close"></div>
+    <div class="title-btn btn-min"></div>
+    <div class="title-btn btn-max"></div>
+    <div class="title-text">Windows Keyboard Shortcuts</div>
+    <div class="title-btn btn-max"></div>
+    <div class="title-btn btn-min"></div>
+    <div class="title-btn btn-close"></div>
+  </div>
+
+  <div class="header">
+    <h1>Windows Keyboard Shortcut Cheatsheet</h1>
+    <div class="subtitle">Windows 10 / 11 · Desktop Engineering Field Reference</div>
+    <div class="meta">
+      <span><span class="meta-val" id="total-count">0</span> <span class="meta-label">shortcuts</span></span>
+      <span><span class="meta-val">7</span> <span class="meta-label">categories</span></span>
+      <span><span class="meta-label">updated</span> <span class="meta-val">2026-03-30</span></span>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <div class="search-inner">
+      <span class="search-label">Find:</span>
+      <input type="text" class="search-box" id="search" placeholder="Search shortcuts, keys, descriptions..." autocomplete="off" spellcheck="false">
+    </div>
+    <div class="search-stats" id="search-stats"></div>
+  </div>
+
+  <nav class="cat-nav" id="cat-nav"></nav>
+
+  <div class="content" id="content"></div>
+
+  <div class="footer">
+    <span>WINDOWS SHORTCUT CHEATSHEET · 2026</span>
+    <span>PRESS / TO SEARCH · ESC TO CLEAR</span>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {
+    id: "system", icon: "🖥", label: "System / Window Management",
+    items: [
+      { sub: "Start & Search" },
+      { k: ["Win"], d: "Open/close Start menu" },
+      { k: ["Win","S"], d: "Open Search" },
+      { k: ["Win","Q"], d: "Open Search (same as Win+S)" },
+      { k: ["Win","A"], d: "Open Quick Settings (Win 11) / Action Center (Win 10)" },
+      { k: ["Win","N"], d: "Open Notification Center", t: "win11" },
+      { k: ["Win","I"], d: "Open Settings" },
+      { k: ["Win","X"], d: "Open Power User menu (WinX)" },
+      { k: ["Win","R"], d: "Open Run dialog" },
+      { k: ["Win","E"], d: "Open File Explorer" },
+      { k: ["Win","L"], d: "Lock workstation" },
+      { k: ["Win","P"], d: "Project / display mode selector" },
+      { k: ["Win","K"], d: "Open Connect (wireless display/audio)" },
+      { k: ["Win","H"], d: "Open Voice Typing" },
+      { k: ["Ctrl","Alt","Del"], d: "Security options screen" },
+      { k: ["Ctrl","Shift","Esc"], d: "Open Task Manager directly" },
+      { sub: "Window Control" },
+      { k: ["Alt","F4"], d: "Close active window / Shut down (on desktop)" },
+      { k: ["Alt","Tab"], d: "Switch between open windows" },
+      { k: ["Alt","Shift","Tab"], d: "Switch windows in reverse" },
+      { k: ["Alt","Space"], d: "Open window title bar menu" },
+      { k: ["Alt","Enter"], d: "Toggle fullscreen (supported apps) / Properties" },
+      { k: ["F11"], d: "Toggle fullscreen mode (browser, Explorer)" },
+      { k: ["Win","↑"], d: "Maximize active window" },
+      { k: ["Win","↓"], d: "Restore / minimize active window" },
+      { k: ["Win","←"], d: "Snap window to left half" },
+      { k: ["Win","→"], d: "Snap window to right half" },
+      { k: ["Win","Shift","↑"], d: "Stretch window to full height" },
+      { k: ["Win","Shift","↓"], d: "Restore / minimize vertically" },
+      { k: ["Win","Shift","←"], d: "Move window to left monitor" },
+      { k: ["Win","Shift","→"], d: "Move window to right monitor" },
+      { k: ["Win","Home"], d: "Minimize all except active window" },
+      { k: ["Win","Z"], d: "Open Snap Layouts flyout", t: "win11" },
+      { sub: "Desktop & Taskbar" },
+      { k: ["Win","D"], d: "Show / hide desktop (toggle)" },
+      { k: ["Win","M"], d: "Minimize all windows" },
+      { k: ["Win","Shift","M"], d: "Restore minimized windows" },
+      { k: ["Win",","], d: "Peek at desktop (hold)" },
+      { k: ["Win","T"], d: "Cycle through taskbar apps" },
+      { k: ["Win","B"], d: "Focus system tray / notification area" },
+      { k: ["Win","1–9"], d: "Launch/switch to pinned taskbar app #N" },
+      { k: ["Win","Shift","1–9"], d: "Launch new instance of taskbar app #N" },
+      { k: ["Win","Ctrl","Shift","1–9"], d: "Launch taskbar app #N as admin" },
+      { k: ["Win","Alt","1–9"], d: "Open jump list for taskbar app #N" },
+      { sub: "Clipboard & Screenshots" },
+      { k: ["Win","V"], d: "Open clipboard history" },
+      { k: ["Win","."], d: "Open emoji / kaomoji / symbol picker" },
+      { k: ["Win",";"], d: "Open emoji picker (alternate)" },
+      { k: ["PrtSc"], d: "Screenshot full screen → clipboard" },
+      { k: ["Win","PrtSc"], d: "Screenshot full screen → file (Pictures/Screenshots)" },
+      { k: ["Alt","PrtSc"], d: "Screenshot active window → clipboard" },
+      { k: ["Win","Shift","S"], d: "Open Snipping Tool / screen snip" },
+      { k: ["Win","Alt","PrtSc"], d: "Screenshot active window via Game Bar" },
+      { sub: "System Utilities" },
+      { k: ["Win","G"], d: "Open Xbox Game Bar" },
+      { k: ["Win","Alt","R"], d: "Start/stop screen recording (Game Bar)" },
+      { k: ["Win","Pause"], d: "Open System > About" },
+      { k: ["Win","Ctrl","Shift","B"], d: "Restart graphics driver", t: "admin" },
+      { k: ["Win","U"], d: "Open Accessibility Settings" },
+      { k: ["Win","W"], d: "Open Widgets panel", t: "win11" },
+      { k: ["Win","C"], d: "Open Copilot / Chat", t: "win11" },
+    ]
+  },
+  {
+    id: "explorer", icon: "📁", label: "File Explorer / Desktop",
+    items: [
+      { sub: "Navigation" },
+      { k: ["Alt","←"], d: "Go back" },
+      { k: ["Alt","→"], d: "Go forward" },
+      { k: ["Alt","↑"], d: "Go to parent folder" },
+      { k: ["Alt","D"], d: "Focus address bar" },
+      { k: ["Ctrl","L"], d: "Focus address bar (alternate)" },
+      { k: ["Ctrl","E"], d: "Focus search box" },
+      { k: ["Ctrl","F"], d: "Focus search box (alternate)" },
+      { k: ["F4"], d: "Open address bar dropdown" },
+      { k: ["Backspace"], d: "Go back (legacy behavior)" },
+      { k: ["F5"], d: "Refresh current view" },
+      { k: ["Ctrl","R"], d: "Refresh current view (alternate)" },
+      { sub: "File Operations" },
+      { k: ["Ctrl","N"], d: "Open new window" },
+      { k: ["Ctrl","W"], d: "Close current window" },
+      { k: ["Ctrl","T"], d: "Open new tab", t: "win11" },
+      { k: ["Ctrl","Shift","N"], d: "Create new folder" },
+      { k: ["F2"], d: "Rename selected item" },
+      { k: ["Ctrl","C"], d: "Copy selected" },
+      { k: ["Ctrl","X"], d: "Cut selected" },
+      { k: ["Ctrl","V"], d: "Paste" },
+      { k: ["Ctrl","Shift","V"], d: "Paste as plain text (supported apps)" },
+      { k: ["Ctrl","Z"], d: "Undo last action" },
+      { k: ["Ctrl","Y"], d: "Redo last action" },
+      { k: ["Ctrl","A"], d: "Select all items" },
+      { k: ["Ctrl","D"], d: "Delete selected → Recycle Bin" },
+      { k: ["Delete"], d: "Delete selected → Recycle Bin" },
+      { k: ["Shift","Delete"], d: "Permanently delete (skip Recycle Bin)" },
+      { k: ["Ctrl","Shift","Drag"], d: "Create shortcut to dragged item" },
+      { k: ["Alt","Enter"], d: "Open Properties of selected item" },
+      { sub: "View & Layout" },
+      { k: ["Ctrl","Shift","1"], d: "Extra large icons" },
+      { k: ["Ctrl","Shift","2"], d: "Large icons" },
+      { k: ["Ctrl","Shift","3"], d: "Medium icons" },
+      { k: ["Ctrl","Shift","4"], d: "Small icons" },
+      { k: ["Ctrl","Shift","5"], d: "List view" },
+      { k: ["Ctrl","Shift","6"], d: "Details view" },
+      { k: ["Ctrl","Shift","7"], d: "Tiles view" },
+      { k: ["Ctrl","Shift","8"], d: "Content view" },
+      { k: ["Ctrl","Scroll"], d: "Change icon size (zoom)" },
+      { k: ["Alt","P"], d: "Toggle preview pane" },
+      { k: ["Ctrl","Shift","E"], d: "Expand nav pane to current folder" },
+      { k: ["Num *"], d: "Expand all subfolders in nav pane" },
+      { k: ["Num +"], d: "Expand selected folder" },
+      { k: ["Num −"], d: "Collapse selected folder" },
+      { k: ["Home"], d: "Jump to first item" },
+      { k: ["End"], d: "Jump to last item" },
+    ]
+  },
+  {
+    id: "desktops", icon: "🖵", label: "Virtual Desktops / Snap",
+    items: [
+      { sub: "Virtual Desktops" },
+      { k: ["Win","Tab"], d: "Open Task View (virtual desktops overview)" },
+      { k: ["Win","Ctrl","D"], d: "Create new virtual desktop" },
+      { k: ["Win","Ctrl","F4"], d: "Close current virtual desktop" },
+      { k: ["Win","Ctrl","←"], d: "Switch to previous virtual desktop" },
+      { k: ["Win","Ctrl","→"], d: "Switch to next virtual desktop" },
+      { sub: "Snap Layouts (Win 11)" },
+      { k: ["Win","Z"], d: "Open Snap Layouts flyout", t: "win11" },
+      { k: ["Win","←"], d: "Snap to left half" },
+      { k: ["Win","→"], d: "Snap to right half" },
+      { k: ["Win","↑"], d: "Maximize / snap to top half" },
+      { k: ["Win","↓"], d: "Restore down / snap to bottom half" },
+      { k: ["Win","← then ↑"], d: "Snap to top-left quadrant" },
+      { k: ["Win","← then ↓"], d: "Snap to bottom-left quadrant" },
+      { k: ["Win","→ then ↑"], d: "Snap to top-right quadrant" },
+      { k: ["Win","→ then ↓"], d: "Snap to bottom-right quadrant" },
+      { sub: "Multi-Monitor" },
+      { k: ["Win","Shift","←"], d: "Move window to left monitor" },
+      { k: ["Win","Shift","→"], d: "Move window to right monitor" },
+      { k: ["Win","P"], d: "Projection mode (duplicate, extend, etc.)" },
+    ]
+  },
+  {
+    id: "power", icon: "⚡", label: "Accessibility / Power User",
+    items: [
+      { sub: "Power User Shortcuts" },
+      { k: ["Win","X"], d: "Power User menu (device mgr, disk mgmt, terminal)" },
+      { k: ["Win","R"], d: "Run dialog" },
+      { k: ["Win","Pause"], d: "System > About" },
+      { k: ["Ctrl","Shift","Esc"], d: "Task Manager" },
+      { k: ["Ctrl","Shift","Enter"], d: "Run as Administrator (from search/run)" },
+      { k: ["Win","Ctrl","Shift","B"], d: "Restart graphics driver" },
+      { sub: "Run Dialog Commands" },
+      { k: ["devmgmt.msc"], d: "Device Manager" },
+      { k: ["diskmgmt.msc"], d: "Disk Management" },
+      { k: ["compmgmt.msc"], d: "Computer Management" },
+      { k: ["services.msc"], d: "Services" },
+      { k: ["eventvwr.msc"], d: "Event Viewer" },
+      { k: ["gpedit.msc"], d: "Local Group Policy Editor (Pro/Ent)" },
+      { k: ["regedit"], d: "Registry Editor" },
+      { k: ["ncpa.cpl"], d: "Network Connections" },
+      { k: ["appwiz.cpl"], d: "Programs and Features" },
+      { k: ["control"], d: "Control Panel" },
+      { k: ["msconfig"], d: "System Configuration" },
+      { k: ["resmon"], d: "Resource Monitor" },
+      { k: ["perfmon"], d: "Performance Monitor" },
+      { k: ["msinfo32"], d: "System Information" },
+      { k: ["dxdiag"], d: "DirectX Diagnostics" },
+      { k: ["cleanmgr"], d: "Disk Cleanup" },
+      { k: ["optionalfeatures"], d: "Windows Features on/off" },
+      { k: ["shell:startup"], d: "Open user Startup folder" },
+      { k: ["shell:common startup"], d: "Open all-users Startup folder" },
+      { sub: "Accessibility" },
+      { k: ["Win","U"], d: "Open Accessibility Settings" },
+      { k: ["Win","+"], d: "Open Magnifier / zoom in" },
+      { k: ["Win","−"], d: "Magnifier zoom out" },
+      { k: ["Win","Esc"], d: "Close Magnifier" },
+      { k: ["Ctrl","Alt","I"], d: "Invert colors (Magnifier)" },
+      { k: ["Win","Enter"], d: "Open Narrator" },
+      { k: ["Ctrl","Win","N"], d: "Open Narrator settings" },
+      { k: ["Ctrl","Win","Enter"], d: "Toggle Narrator" },
+      { k: ["Left Alt","Left Shift","PrtSc"], d: "Toggle High Contrast" },
+      { k: ["Left Alt","Left Shift","Num Lock"], d: "Toggle Mouse Keys" },
+      { k: ["Shift","×5"], d: "Toggle Sticky Keys prompt" },
+      { k: ["Num Lock","hold 5s"], d: "Toggle Toggle Keys" },
+      { k: ["Win","Ctrl","O"], d: "Open On-Screen Keyboard" },
+    ]
+  },
+  {
+    id: "terminal", icon: "▶", label: "PowerShell / Windows Terminal",
+    items: [
+      { sub: "Windows Terminal" },
+      { k: ["Ctrl","Shift","T"], d: "New tab (default profile)" },
+      { k: ["Ctrl","Shift","1–9"], d: "New tab with profile #N" },
+      { k: ["Ctrl","Shift","Space"], d: "Open profile dropdown" },
+      { k: ["Ctrl","Tab"], d: "Switch to next tab" },
+      { k: ["Ctrl","Shift","Tab"], d: "Switch to previous tab" },
+      { k: ["Ctrl","Alt","1–9"], d: "Switch to tab #N" },
+      { k: ["Ctrl","Shift","W"], d: "Close current tab/pane" },
+      { k: ["Alt","Shift","D"], d: "Duplicate/split pane (auto direction)" },
+      { k: ["Alt","Shift","+"], d: "Split pane vertically" },
+      { k: ["Alt","Shift","−"], d: "Split pane horizontally" },
+      { k: ["Alt","←/→/↑/↓"], d: "Move focus between panes" },
+      { k: ["Alt","Shift","←/→/↑/↓"], d: "Resize active pane" },
+      { k: ["Ctrl","Shift","P"], d: "Command Palette" },
+      { k: ["Ctrl","Shift","F"], d: "Find in terminal" },
+      { k: ["Ctrl",","], d: "Open Settings" },
+      { k: ["Ctrl","+"], d: "Increase font size" },
+      { k: ["Ctrl","−"], d: "Decrease font size" },
+      { k: ["Ctrl","0"], d: "Reset font size" },
+      { k: ["Alt","Enter"], d: "Toggle fullscreen" },
+      { k: ["F11"], d: "Toggle fullscreen (alternate)" },
+      { k: ["Ctrl","Shift","Scroll"], d: "Adjust opacity (acrylic)" },
+      { sub: "PowerShell / PSReadLine" },
+      { k: ["Tab"], d: "Tab completion" },
+      { k: ["Ctrl","Space"], d: "MenuComplete (show all completions)" },
+      { k: ["↑ / ↓"], d: "Navigate command history" },
+      { k: ["Ctrl","R"], d: "Reverse incremental history search" },
+      { k: ["Ctrl","S"], d: "Forward incremental history search" },
+      { k: ["F7"], d: "Command history popup (interactive)" },
+      { k: ["F8"], d: "Search history matching current input" },
+      { k: ["F9"], d: "Select command by history number" },
+      { k: ["Ctrl","C"], d: "Cancel current command / input" },
+      { k: ["Ctrl","L"], d: "Clear screen" },
+      { k: ["Ctrl","A"], d: "Move cursor to beginning of line" },
+      { k: ["Ctrl","E"], d: "Move cursor to end of line" },
+      { k: ["Ctrl","←/→"], d: "Move cursor by word" },
+      { k: ["Ctrl","Backspace"], d: "Delete word left" },
+      { k: ["Ctrl","Delete"], d: "Delete word right" },
+      { k: ["Home"], d: "Move to beginning of line" },
+      { k: ["End"], d: "Move to end of line" },
+      { k: ["Ctrl","Home"], d: "Move to top of buffer" },
+      { k: ["Ctrl","End"], d: "Move to bottom of buffer" },
+      { k: ["Alt","D"], d: "Delete word forward (Emacs-style)" },
+      { k: ["Ctrl","U"], d: "Delete from cursor to beginning of line" },
+      { k: ["Ctrl","K"], d: "Delete from cursor to end of line" },
+      { k: ["Escape"], d: "Clear current input line" },
+    ]
+  },
+  {
+    id: "apps", icon: "📝", label: "Notepad / Built-in Apps",
+    items: [
+      { sub: "Notepad" },
+      { k: ["Ctrl","N"], d: "New file" },
+      { k: ["Ctrl","Shift","N"], d: "New window" },
+      { k: ["Ctrl","O"], d: "Open file" },
+      { k: ["Ctrl","S"], d: "Save" },
+      { k: ["Ctrl","Shift","S"], d: "Save As" },
+      { k: ["Ctrl","T"], d: "New tab", t: "win11" },
+      { k: ["Ctrl","W"], d: "Close tab", t: "win11" },
+      { k: ["Ctrl","Tab"], d: "Next tab", t: "win11" },
+      { k: ["Ctrl","Shift","Tab"], d: "Previous tab", t: "win11" },
+      { k: ["Ctrl","F"], d: "Find" },
+      { k: ["Ctrl","H"], d: "Find and Replace" },
+      { k: ["F3"], d: "Find next" },
+      { k: ["Shift","F3"], d: "Find previous" },
+      { k: ["Ctrl","G"], d: "Go to line" },
+      { k: ["Ctrl","+"], d: "Zoom in" },
+      { k: ["Ctrl","−"], d: "Zoom out" },
+      { k: ["Ctrl","0"], d: "Reset zoom" },
+      { k: ["F5"], d: "Insert date/time" },
+      { k: ["Ctrl","Shift","P"], d: "Print preview" },
+      { k: ["Ctrl","P"], d: "Print" },
+      { sub: "Snipping Tool" },
+      { k: ["Win","Shift","S"], d: "Open Snipping Tool / snip screen" },
+      { k: ["Ctrl","N"], d: "New snip (when app is open)" },
+      { k: ["Alt","M"], d: "Choose snip mode" },
+      { k: ["Alt","D"], d: "Delayed snip" },
+      { k: ["Ctrl","S"], d: "Save snip" },
+      { k: ["Ctrl","C"], d: "Copy snip to clipboard" },
+      { sub: "Calculator" },
+      { k: ["Alt","1"], d: "Standard mode" },
+      { k: ["Alt","2"], d: "Scientific mode" },
+      { k: ["Alt","3"], d: "Programmer mode" },
+      { k: ["Alt","4"], d: "Date calculation mode" },
+      { k: ["Ctrl","M"], d: "Store in memory" },
+      { k: ["Ctrl","R"], d: "Recall from memory" },
+      { k: ["Ctrl","L"], d: "Clear memory" },
+      { k: ["Ctrl","P"], d: "Add to memory (M+)" },
+      { k: ["Ctrl","Q"], d: "Subtract from memory (M−)" },
+      { k: ["F9"], d: "Toggle positive/negative" },
+      { k: ["@"], d: "Square root" },
+      { k: ["Ctrl","H"], d: "Toggle history panel" },
+    ]
+  },
+  {
+    id: "edge", icon: "🌐", label: "Edge / Browser",
+    items: [
+      { sub: "Tabs" },
+      { k: ["Ctrl","T"], d: "New tab" },
+      { k: ["Ctrl","W"], d: "Close current tab" },
+      { k: ["Ctrl","Shift","T"], d: "Reopen last closed tab" },
+      { k: ["Ctrl","Tab"], d: "Switch to next tab" },
+      { k: ["Ctrl","Shift","Tab"], d: "Switch to previous tab" },
+      { k: ["Ctrl","1–8"], d: "Switch to tab #N" },
+      { k: ["Ctrl","9"], d: "Switch to last tab" },
+      { k: ["Ctrl","N"], d: "New window" },
+      { k: ["Ctrl","Shift","N"], d: "New InPrivate window" },
+      { k: ["Ctrl","Shift","K"], d: "Duplicate current tab" },
+      { k: ["Alt","F4"], d: "Close window" },
+      { sub: "Navigation" },
+      { k: ["Ctrl","L"], d: "Focus address bar" },
+      { k: ["Alt","D"], d: "Focus address bar (alternate)" },
+      { k: ["F5"], d: "Refresh page" },
+      { k: ["Ctrl","R"], d: "Refresh page (alternate)" },
+      { k: ["Ctrl","Shift","R"], d: "Hard refresh (bypass cache)" },
+      { k: ["Ctrl","F5"], d: "Hard refresh (alternate)" },
+      { k: ["Alt","←"], d: "Go back" },
+      { k: ["Alt","→"], d: "Go forward" },
+      { k: ["Alt","Home"], d: "Go to home page" },
+      { k: ["Escape"], d: "Stop loading page" },
+      { k: ["F11"], d: "Toggle fullscreen" },
+      { sub: "Search & Find" },
+      { k: ["Ctrl","F"], d: "Find on page" },
+      { k: ["F3"], d: "Find next" },
+      { k: ["Shift","F3"], d: "Find previous" },
+      { k: ["Ctrl","E"], d: "Search from address bar" },
+      { k: ["Ctrl","K"], d: "Search from address bar (alternate)" },
+      { sub: "Bookmarks & History" },
+      { k: ["Ctrl","D"], d: "Bookmark current page" },
+      { k: ["Ctrl","Shift","B"], d: "Toggle favorites bar" },
+      { k: ["Ctrl","Shift","O"], d: "Open Favorites manager" },
+      { k: ["Ctrl","H"], d: "Open History" },
+      { k: ["Ctrl","J"], d: "Open Downloads" },
+      { sub: "Zoom & View" },
+      { k: ["Ctrl","+"], d: "Zoom in" },
+      { k: ["Ctrl","−"], d: "Zoom out" },
+      { k: ["Ctrl","0"], d: "Reset zoom to 100%" },
+      { k: ["Ctrl","Shift","Delete"], d: "Open clear browsing data" },
+      { sub: "Developer Tools" },
+      { k: ["F12"], d: "Open/close DevTools" },
+      { k: ["Ctrl","Shift","I"], d: "Open DevTools (alternate)" },
+      { k: ["Ctrl","Shift","J"], d: "Open DevTools Console" },
+      { k: ["Ctrl","Shift","C"], d: "Inspect element (select mode)" },
+      { k: ["Ctrl","Shift","M"], d: "Toggle device toolbar (responsive)" },
+      { k: ["Ctrl","U"], d: "View page source" },
+      { sub: "Other" },
+      { k: ["Ctrl","P"], d: "Print page" },
+      { k: ["Ctrl","S"], d: "Save page" },
+      { k: ["Ctrl","Shift","A"], d: "Search tabs (Edge)" },
+      { k: ["Ctrl","Click"], d: "Open link in new background tab" },
+      { k: ["Ctrl","Shift","Click"], d: "Open link in new foreground tab" },
+      { k: ["Shift","Click"], d: "Open link in new window" },
+    ]
+  },
+];
+
+// ── Render ──
+(function() {
+  const catNav = document.getElementById('cat-nav');
+  const content = document.getElementById('content');
+  let totalCount = 0;
+
+  // Count shortcuts
+  DATA.forEach(sec => {
+    sec.items.forEach(item => { if (!item.sub) totalCount++; });
+  });
+  document.getElementById('total-count').textContent = totalCount;
+
+  // Build category nav
+  const allBtn = document.createElement('button');
+  allBtn.className = 'cat-btn active';
+  allBtn.dataset.cat = 'all';
+  allBtn.textContent = 'ALL';
+  catNav.appendChild(allBtn);
+
+  DATA.forEach(sec => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn';
+    btn.dataset.cat = sec.id;
+    btn.textContent = sec.label.toUpperCase().split('/')[0].trim();
+    catNav.appendChild(btn);
+  });
+
+  // Build sections
+  DATA.forEach(sec => {
+    const secEl = document.createElement('div');
+    secEl.className = 'section';
+    secEl.dataset.cat = sec.id;
+
+    const count = sec.items.filter(i => !i.sub).length;
+
+    secEl.innerHTML = `<div class="section-bar">
+      <span class="section-icon">${sec.icon}</span>
+      <span class="section-title">${sec.label}</span>
+      <span class="section-count">${count} shortcuts</span>
+    </div>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'shortcut-grid';
+
+    sec.items.forEach(item => {
+      if (item.sub) {
+        const sh = document.createElement('div');
+        sh.className = 'sub-header';
+        sh.textContent = item.sub;
+        grid.appendChild(sh);
+        return;
+      }
+
+      const row = document.createElement('div');
+      row.className = 'shortcut-row';
+      row.dataset.keywords = (item.d + ' ' + item.k.join(' ')).toLowerCase();
+
+      const keysHtml = item.k.map(k => `<span class="key">${k}</span>`).join('<span class="key-plus">+</span>');
+      const tagHtml = item.t ? `<span class="tag tag-${item.t}">${item.t === 'win11' ? 'WIN 11' : item.t === 'admin' ? 'ADMIN' : item.t.toUpperCase()}</span>` : '';
+
+      row.innerHTML = `<div class="keys">${keysHtml}</div><span class="desc">${item.d}</span>${tagHtml}`;
+      grid.appendChild(row);
+    });
+
+    secEl.appendChild(grid);
+    content.appendChild(secEl);
+  });
+
+  // ── Category nav click ──
+  const catBtns = catNav.querySelectorAll('.cat-btn');
+  const sections = content.querySelectorAll('.section');
+
+  catBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cat = btn.dataset.cat;
+      catBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sections.forEach(sec => {
+        sec.classList.toggle('hidden', cat !== 'all' && sec.dataset.cat !== cat);
+      });
+      document.getElementById('search').value = '';
+      content.querySelectorAll('.shortcut-row').forEach(r => r.classList.remove('hidden'));
+      content.querySelectorAll('.sub-header').forEach(r => r.classList.remove('hidden'));
+      document.getElementById('search-stats').classList.remove('active');
+    });
+  });
+
+  // ── Search ──
+  const searchInput = document.getElementById('search');
+  const searchStats = document.getElementById('search-stats');
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+    const allRows = content.querySelectorAll('.shortcut-row');
+    const allSubs = content.querySelectorAll('.sub-header');
+
+    if (!q) {
+      allRows.forEach(r => r.classList.remove('hidden'));
+      allSubs.forEach(r => r.classList.remove('hidden'));
+      sections.forEach(s => s.classList.remove('hidden'));
+      searchStats.classList.remove('active');
+      const activeCat = catNav.querySelector('.cat-btn.active').dataset.cat;
+      if (activeCat !== 'all') {
+        sections.forEach(s => { if (s.dataset.cat !== activeCat) s.classList.add('hidden'); });
+      }
+      return;
+    }
+
+    // Show all sections during search
+    catBtns.forEach(b => b.classList.remove('active'));
+    catNav.querySelector('[data-cat="all"]').classList.add('active');
+    sections.forEach(s => s.classList.remove('hidden'));
+    allSubs.forEach(s => s.classList.remove('hidden'));
+
+    const terms = q.split(/\s+/);
+    let visible = 0;
+
+    allRows.forEach(row => {
+      const text = row.dataset.keywords;
+      const match = terms.every(t => text.includes(t));
+      row.classList.toggle('hidden', !match);
+      if (match) visible++;
+    });
+
+    // Hide empty sections
+    sections.forEach(sec => {
+      const hasVisible = sec.querySelectorAll('.shortcut-row:not(.hidden)').length > 0;
+      sec.classList.toggle('hidden', !hasVisible);
+    });
+
+    searchStats.textContent = visible + ' of ' + totalCount + ' shortcuts';
+    searchStats.classList.add('active');
+  });
+
+  // ── Keyboard shortcuts ──
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+      searchInput.blur();
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+    }
+  });
+})();
+</script>
+</body>
+</html>
