@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>macOS_shortcuts v5.0</title>
+<style>
+  :root {
+    --green: #3cffa8;
+    --bg: #030806;
+    --card: rgba(12,28,20,0.8);
+    --card-end: rgba(6,14,10,0.95);
+    --dim: #1e3a28;
+    --text: #4a6854;
+    --text-hover: #7dd4a0;
+    --muted: #2a4035;
+    --border: rgba(60,255,170,0.08);
+    --border-bright: rgba(60,255,170,0.35);
+    --glow: rgba(60,255,170,0.06);
+    --mono: 'SF Mono','Fira Code','Cascadia Code','JetBrains Mono','Menlo','Consolas',monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; background: var(--bg); font-family: var(--mono);
+    color: #a0b8a8; padding: 20px 12px;
+    background-image:
+      radial-gradient(ellipse at 15% 0%, rgba(30,120,70,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 100%, rgba(20,80,60,0.04) 0%, transparent 40%);
+  }
+  .scanline {
+    position: fixed; inset: 0; pointer-events: none; z-index: 999;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
+  }
+  .wrap { max-width: 740px; margin: 0 auto; position: relative; }
+
+  /* Header */
+  .header { margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+  .header-row { display: flex; align-items: baseline; gap: 8px; }
+  .header-row .arrow { color: var(--green); font-size: 11px; opacity: 0.5; }
+  .header h1 {
+    font-size: 16px; font-weight: 700; color: var(--green); letter-spacing: 2.5px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(60,255,170,0.25), 0 0 40px rgba(60,255,170,0.08);
+  }
+  .header .ver { font-size: 9px; color: var(--dim); letter-spacing: 1px; }
+  .header .meta { color: var(--dim); font-size: 9px; margin-top: 3px; padding-left: 19px; letter-spacing: 0.8px; }
+
+  /* Search */
+  .search-wrap { position: relative; margin-bottom: 12px; }
+  .search-wrap .prompt {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    font-size: 10px; color: var(--green); opacity: 0.4;
+  }
+  .search-wrap input {
+    width: 100%; padding: 9px 12px 9px 32px; border-radius: 2px;
+    border: 1px solid rgba(60,255,170,0.12); background: rgba(8,20,14,0.9);
+    color: var(--green); font-size: 11px; font-family: var(--mono); outline: none;
+    caret-color: var(--green); letter-spacing: 0.5px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-wrap input:focus {
+    border-color: var(--border-bright); box-shadow: 0 0 12px var(--glow);
+  }
+  .search-wrap .clear {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    font-size: 9px; color: #3a5a48; cursor: pointer; display: none;
+  }
+  .search-wrap.has-query .clear { display: block; }
+
+  /* Pills */
+  .pills { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 16px; }
+  .pill {
+    padding: 3px 8px; border-radius: 2px; font-size: 9px; font-family: var(--mono);
+    font-weight: 600; cursor: pointer; letter-spacing: 0.6px; text-transform: uppercase;
+    border: 1px solid var(--border); background: rgba(8,16,12,0.7); color: var(--muted);
+    transition: all 0.12s;
+  }
+  .pill.active {
+    border-color: var(--border-bright); color: var(--green);
+    background: linear-gradient(180deg, rgba(60,255,170,0.1) 0%, rgba(20,60,40,0.25) 100%);
+    box-shadow: 0 0 8px var(--glow);
+  }
+
+  /* Category card */
+  .cat-card {
+    margin-bottom: 10px; border-radius: 3px; border: 1px solid var(--border); overflow: hidden;
+    background: linear-gradient(180deg, var(--card) 0%, var(--card-end) 100%);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2), inset 0 1px 0 rgba(60,255,170,0.04);
+  }
+  .cat-header {
+    padding: 7px 12px; display: flex; align-items: center; gap: 6px;
+    background: linear-gradient(180deg, rgba(60,255,170,0.04) 0%, transparent 100%);
+    cursor: pointer; user-select: none; border-bottom: 1px solid rgba(60,255,170,0.06);
+  }
+  .cat-header.collapsed { border-bottom: none; }
+  .cat-header .chevron {
+    font-size: 9px; color: var(--green); opacity: 0.5;
+    transition: transform 0.15s; display: inline-block;
+  }
+  .cat-header.collapsed .chevron { transform: rotate(-90deg); }
+  .cat-header .icon { font-size: 11px; opacity: 0.6; }
+  .cat-header .name {
+    font-weight: 700; font-size: 10px; color: var(--green);
+    letter-spacing: 1.5px; text-shadow: 0 0 6px rgba(60,255,170,0.15);
+  }
+  .cat-header .count { font-size: 8px; color: var(--dim); margin-left: auto; letter-spacing: 0.5px; }
+
+  /* Tags */
+  .tag {
+    font-size: 8px; font-family: var(--mono); padding: 1px 5px; border-radius: 2px;
+    letter-spacing: 0.8px; text-transform: uppercase; font-weight: 700;
+  }
+
+  /* Rows */
+  .row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px; transition: background 0.1s; cursor: default;
+  }
+  .row + .row { border-top: 1px solid rgba(60,255,170,0.025); }
+  .row:hover { background: linear-gradient(90deg, rgba(60,255,170,0.05) 0%, transparent 60%); }
+  .row .desc {
+    font-size: 10.5px; color: var(--text); letter-spacing: 0.2px;
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    transition: color 0.1s;
+  }
+  .row:hover .desc { color: var(--text-hover); }
+  .row .bullet { color: var(--dim); margin-right: 6px; font-size: 8px; }
+  .row:hover .bullet::before { content: '▸'; }
+  .row .bullet::before { content: '·'; }
+  .row .keys { display: flex; align-items: center; gap: 2px; flex-shrink: 0; margin-left: 12px; }
+  .row .keys .plus { color: #152a1e; font-size: 8px; }
+
+  /* Key cap */
+  .key {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px; padding: 0 5px; border-radius: 3px;
+    background: linear-gradient(180deg, rgba(60,255,170,0.15) 0%, rgba(20,60,40,0.5) 100%);
+    border: 1px solid rgba(60,255,170,0.3);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5), inset 0 1px 0 rgba(60,255,170,0.15);
+    font-size: 10px; font-family: var(--mono); font-weight: 600; color: var(--green);
+    letter-spacing: 0.5px; white-space: nowrap;
+  }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 32px; color: var(--dim); font-size: 11px; }
+  .empty .warn { color: var(--green); opacity: 0.3; }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 12px 0 4px; font-size: 8px; color: #152a1e;
+    letter-spacing: 1px; border-top: 1px solid rgba(60,255,170,0.04); margin-top: 6px;
+  }
+  .eof { text-align: center; font-size: 8px; color: #0e1e14; letter-spacing: 0.5px; padding-bottom: 4px; }
+
+  @media print {
+    .scanline, .search-wrap, .pills { display: none; }
+    body { background: #000; }
+    .row { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="wrap">
+  <div class="header">
+    <div class="header-row">
+      <span class="arrow">▸</span>
+      <h1>macOS_shortcuts</h1>
+      <span class="ver">v5.0</span>
+    </div>
+    <p class="meta" id="meta"></p>
+  </div>
+  <div class="search-wrap" id="searchWrap">
+    <span class="prompt">$&gt;</span>
+    <input type="text" id="search" placeholder="grep shortcuts..." autocomplete="off" spellcheck="false">
+    <span class="clear" id="clearBtn">[clear]</span>
+  </div>
+  <div class="pills" id="pills"></div>
+  <div id="content"></div>
+  <div class="footer">⌘ CMD · ⌥ OPT · ⌃ CTRL · ⇧ SHIFT · ⌫ DEL · Fn GLOBE · ⏻ POWER · ⏏ EJECT</div>
+  <div class="eof">EOF</div>
+</div>
+
+<script>
+const S=[{cat:"SYSTEM",icon:"⚙",items:[{k:["⌘","Space"],d:"Spotlight Search"},{k:["⌘","Tab"],d:"Switch applications"},{k:["⌘","`"],d:"Cycle windows of current app"},{k:["⌘","Q"],d:"Quit application"},{k:["⌘","W"],d:"Close window"},{k:["⌥","⌘","W"],d:"Close all windows of app"},{k:["⌘","H"],d:"Hide current app"},{k:["⌥","⌘","H"],d:"Hide all other apps"},{k:["⌘","M"],d:"Minimize window"},{k:["⌥","⌘","M"],d:"Minimize all windows of app"},{k:["⌘",","],d:"Open preferences"},{k:["⌃","⌘","Q"],d:"Lock screen"},{k:["⌘","⌥","Esc"],d:"Force quit menu"},{k:["⌥","⌘","D"],d:"Toggle Dock visibility"},{k:["⌃","⇧","⏏"],d:"Toggle Do Not Disturb"},{k:["⇧","⌘","Q"],d:"Log out (confirm)"},{k:["⇧","⌥","⌘","Q"],d:"Log out (immediate)"},{k:["⌘","⇧","/"],d:"Open Help menu search"}]},{cat:"WINDOW TILING",icon:"◫",tag:"Sequoia+",items:[{k:["Fn","⌃","F"],d:"Fill entire screen"},{k:["Fn","⌃","C"],d:"Center window on screen"},{k:["Fn","⌃","R"],d:"Restore previous size/position"},{k:["Fn","⌃","←"],d:"Tile to left half"},{k:["Fn","⌃","→"],d:"Tile to right half"},{k:["Fn","⌃","↑"],d:"Tile to top half"},{k:["Fn","⌃","↓"],d:"Tile to bottom half"},{k:["Fn","⌃","⇧","←"],d:"Left half + arrange other right"},{k:["Fn","⌃","⇧","→"],d:"Right half + arrange other left"},{k:["Fn","⌃","⇧","↑"],d:"Top half + arrange other below"},{k:["Fn","⌃","⇧","↓"],d:"Bottom half + arrange other above"},{k:["Fn","⌃","⌥","⇧","←"],d:"Left half + 2 corners right"},{k:["Fn","⌃","⌥","⇧","→"],d:"Right half + 2 corners left"},{k:["⌃","⌘","F"],d:"Toggle true fullscreen (Space)"}]},{cat:"FOCUS CONTROL",icon:"◉",tag:"hidden",items:[{k:["⌃","F2"],d:"Focus menu bar (then type to jump)"},{k:["⌃","F3"],d:"Focus Dock"},{k:["⌃","F4"],d:"Focus active/next window"},{k:["⌃","F5"],d:"Focus window toolbar"},{k:["⌃","F6"],d:"Focus floating window"},{k:["⌃","F7"],d:"Toggle Tab focus mode"},{k:["⌃","F8"],d:"Focus status menus (menu bar right)"},{k:["⌃","F1"],d:"Toggle full keyboard access"}]},{cat:"COCOA TEXT (SYSTEM-WIDE)",icon:"⎇",tag:"emacs",items:[{k:["⌃","A"],d:"Move to beginning of line"},{k:["⌃","E"],d:"Move to end of line"},{k:["⌃","F"],d:"Move forward one character"},{k:["⌃","B"],d:"Move backward one character"},{k:["⌃","P"],d:"Move to previous line"},{k:["⌃","N"],d:"Move to next line"},{k:["⌃","K"],d:"Kill to end of line (to kill ring)"},{k:["⌃","Y"],d:"Yank from kill ring (paste killed text)"},{k:["⌃","H"],d:"Delete character behind cursor"},{k:["⌃","D"],d:"Delete character ahead of cursor"},{k:["⌃","T"],d:"Transpose characters around cursor"},{k:["⌃","O"],d:"Insert newline after cursor"},{k:["⌃","L"],d:"Center cursor in visible area"},{k:["⌃","V"],d:"Page down in text field"}]},{cat:"EDITING",icon:"✏",items:[{k:["⌘","C"],d:"Copy"},{k:["⌘","V"],d:"Paste"},{k:["⌥","⌘","V"],d:"Move (paste + delete source)"},{k:["⌥","⇧","⌘","V"],d:"Paste and match style"},{k:["⌘","X"],d:"Cut"},{k:["⌘","Z"],d:"Undo"},{k:["⇧","⌘","Z"],d:"Redo"},{k:["⌘","A"],d:"Select all"},{k:["⌥","⌫"],d:"Delete word left"},{k:["Fn","⌫"],d:"Forward delete"},{k:["⌘","⌫"],d:"Delete to line start"},{k:["Fn","⌥","⌫"],d:"Forward delete word"},{k:["⌥","←/→"],d:"Move by word"},{k:["⌘","←/→"],d:"Move to line start/end"},{k:["⌘","↑/↓"],d:"Move to doc start/end"},{k:["⇧","⌥","←/→"],d:"Select by word"},{k:["⇧","⌘","←/→"],d:"Select to line start/end"},{k:["⇧","⌘","↑/↓"],d:"Select to doc start/end"},{k:["⌘",";"],d:"Jump to next misspelling"},{k:["⌘",":"],d:"Open Spelling & Grammar window"},{k:["⌃","⌘","D"],d:"Look up word under cursor"}]},{cat:"FINDER",icon:"📁",items:[{k:["⌘","N"],d:"New Finder window"},{k:["⌘","T"],d:"New Finder tab"},{k:["⇧","⌘","N"],d:"New folder"},{k:["⌃","⌘","N"],d:"New folder with selection"},{k:["⌘","⌫"],d:"Move to Trash"},{k:["⇧","⌘","⌫"],d:"Empty Trash"},{k:["⌘","D"],d:"Duplicate"},{k:["⌘","I"],d:"Get Info"},{k:["⌥","⌘","I"],d:"Show Inspector (live info)"},{k:["Return"],d:"Rename selected item"},{k:["Space"],d:"Quick Look"},{k:["⌥","Space"],d:"Quick Look fullscreen"},{k:["⌥","⌘","Y"],d:"Quick Look slideshow"},{k:["⌘","⇧","."],d:"Toggle hidden files"},{k:["⌘","1"],d:"View as icons"},{k:["⌘","2"],d:"View as list"},{k:["⌘","3"],d:"View as columns"},{k:["⌘","4"],d:"View as gallery"},{k:["⌘","J"],d:"Show view options"},{k:["⌘","↑"],d:"Go to parent folder"},{k:["⌘","↓"],d:"Open selected item"},{k:["⇧","⌘","G"],d:"Go to folder…"},{k:["⌥","⌘","P"],d:"Toggle path bar"},{k:["⌥","⌘","S"],d:"Toggle sidebar"},{k:["⌘","/"],d:"Toggle status bar"},{k:["⌥","⌘","T"],d:"Toggle toolbar"},{k:["⌘","K"],d:"Connect to server…"},{k:["⌃","⌘","A"],d:"Make alias of selected item"},{k:["⌃","⌘","T"],d:"Add selected to sidebar"},{k:["⌘","E"],d:"Eject selected volume"},{k:["⌥","⌘","N"],d:"New Smart Folder"},{k:["⌥","⌘","L"],d:"Open Downloads folder"},{k:["⇧","⌘","A"],d:"Open Applications folder"},{k:["⇧","⌘","U"],d:"Open Utilities folder"},{k:["⇧","⌘","D"],d:"Open Desktop folder"},{k:["⇧","⌘","C"],d:"Open Computer window"},{k:["⇧","⌘","H"],d:"Open Home folder"},{k:["⇧","⌘","R"],d:"Open AirDrop"},{k:["⇧","⌘","I"],d:"Open iCloud Drive"},{k:["⇧","⌘","K"],d:"Open Network window"},{k:["⇧","⌘","O"],d:"Open Documents folder"}]},{cat:"SCREENSHOTS",icon:"📸",items:[{k:["⇧","⌘","3"],d:"Full screenshot → Desktop"},{k:["⌃","⇧","⌘","3"],d:"Full screenshot → Clipboard"},{k:["⇧","⌘","4"],d:"Selection screenshot"},{k:["⌃","⇧","⌘","4"],d:"Selection screenshot → Clipboard"},{k:["⇧","⌘","4","Space"],d:"Window screenshot (+ ⌥ no shadow)"},{k:["⇧","⌘","5"],d:"Screenshot/record toolbar"}]},{cat:"PREVIEW",icon:"🔎",items:[{k:["⌘","+"],d:"Zoom in"},{k:["⌘","-"],d:"Zoom out"},{k:["⌘","0"],d:"Zoom to actual size"},{k:["⌘","9"],d:"Zoom to fit"},{k:["⌘","R"],d:"Rotate right"},{k:["⌘","L"],d:"Rotate left"},{k:["⌘","A"],d:"Select all (for crop)"},{k:["⌘","K"],d:"Crop to selection"},{k:["⌘","⇧","A"],d:"Toggle markup toolbar"},{k:["⌘","⇧","E"],d:"Export…"},{k:["⌥","⌘","I"],d:"Show Inspector (EXIF, dims)"},{k:["⌘","⇧","C"],d:"Adjust color…"},{k:["⌥","⌘","1"],d:"Thumbnails sidebar"},{k:["⌥","⌘","2"],d:"Table of contents sidebar"}]},{cat:"SPACES & MISSION CTRL",icon:"🧭",items:[{k:["⌃","↑"],d:"Mission Control"},{k:["⌃","↓"],d:"App Exposé"},{k:["⌃","←/→"],d:"Switch desktop spaces"},{k:["⌃","1/2/3…"],d:"Jump to specific desktop space"},{k:["F11"],d:"Show desktop"},{k:["⌥","⌃","↑"],d:"Open Mission Control prefs"},{k:["⌥","⌃","↓"],d:"Open App Exposé prefs"},{k:["Drag win to edge"],d:"Tile window to desktop half"}]},{cat:"SAFARI",icon:"🧭",items:[{k:["⌘","T"],d:"New tab"},{k:["⌘","W"],d:"Close tab"},{k:["⇧","⌘","T"],d:"Reopen last closed tab/window"},{k:["⌘","L"],d:"Focus address bar"},{k:["⌘","R"],d:"Reload page"},{k:["⌘","."],d:"Stop loading page"},{k:["⌘","["],d:"Go back"},{k:["⌘","]"],d:"Go forward"},{k:["⌃","Tab"],d:"Next tab"},{k:["⌃","⇧","Tab"],d:"Previous tab"},{k:["⌘","1–9"],d:"Switch to tab #"},{k:["⇧","⌘","\\"],d:"Show tab overview"},{k:["⌘","F"],d:"Find on page"},{k:["⌘","D"],d:"Add bookmark for current page"},{k:["⌥","⌘","B"],d:"Show all bookmarks"},{k:["⇧","⌘","B"],d:"Toggle favorites bar"},{k:["⌘","Y"],d:"Show history"},{k:["⇧","⌘","H"],d:"Go to homepage"},{k:["⇧","⌘","R"],d:"Toggle Reader mode"},{k:["⇧","⌘","L"],d:"Toggle sidebar"},{k:["⌃","⌘","1"],d:"Toggle Bookmarks sidebar"},{k:["⌃","⌘","2"],d:"Toggle Reading List sidebar"},{k:["⇧","⌘","D"],d:"Add page to Reading List"},{k:["⌥","+click link"],d:"Download linked file"},{k:["⌘","+click"],d:"Open link in new background tab"},{k:["⇧","⌘","+click"],d:"Open link in new foreground tab"},{k:["⌥","⌘","I"],d:"Web Inspector"},{k:["⌥","⌘","C"],d:"JavaScript Console"},{k:["⌥","⌘","U"],d:"View page source"},{k:["⌥","⌘","R"],d:"Toggle responsive design mode"}]},{cat:"CURSOR / VSCODE",icon:"⌨",tag:"editor",items:[{k:["⇧","⌘","P"],d:"Command Palette"},{k:["⌘","P"],d:"Quick Open file"},{k:["⌘","K"],d:"Inline AI edit (Cursor)"},{k:["⌘","L"],d:"AI chat panel (Cursor)"},{k:["⌘","I"],d:"Composer / Agent (Cursor)"},{k:["⇧","⌘","A"],d:"Agent chat (Cursor)"},{k:["Tab"],d:"Accept AI suggestion (Cursor)"},{k:["⌘","→"],d:"Accept next word of suggestion"},{k:["⌘","\\"],d:"Split editor"},{k:["⌥","⌘","0"],d:"Toggle editor layout H/V"},{k:["⌃","`"],d:"Toggle integrated terminal"},{k:["⌃","⇧","`"],d:"New terminal instance"},{k:["⌘","B"],d:"Toggle sidebar"},{k:["⌘","J"],d:"Toggle bottom panel"},{k:["⌘","K","Z"],d:"Zen Mode (Esc Esc exit)"},{k:["⌘","K","⌘","S"],d:"Open keyboard shortcuts"},{k:["⌘","K","⌘","T"],d:"Change color theme"}]},{cat:"CURSOR / VSCODE EDITING",icon:"⌨",tag:"editor",items:[{k:["⌘","X"],d:"Cut line (empty selection)"},{k:["⌘","C"],d:"Copy line (empty selection)"},{k:["⌥","↑/↓"],d:"Move line up/down"},{k:["⇧","⌥","↑/↓"],d:"Copy line up/down"},{k:["⇧","⌘","K"],d:"Delete entire line"},{k:["⌘","Enter"],d:"Insert line below"},{k:["⇧","⌘","Enter"],d:"Insert line above"},{k:["⇧","⌘","\\"],d:"Jump to matching bracket"},{k:["⌘","]/["],d:"Indent / Outdent line"},{k:["⌥","⌘","[/]"],d:"Fold / Unfold region"},{k:["⌘","K","⌘","0"],d:"Fold all regions"},{k:["⌘","K","⌘","J"],d:"Unfold all regions"},{k:["⌘","/"],d:"Toggle line comment"},{k:["⇧","⌥","A"],d:"Toggle block comment"},{k:["⌥","Z"],d:"Toggle word wrap"},{k:["⇧","⌥","F"],d:"Format document"},{k:["⌘","K","⌘","F"],d:"Format selection"}]},{cat:"CURSOR / VSCODE SEARCH",icon:"⌨",tag:"editor",items:[{k:["⌘","F"],d:"Find in file"},{k:["⌥","⌘","F"],d:"Find and replace in file"},{k:["⇧","⌘","F"],d:"Search across all files"},{k:["⇧","⌘","H"],d:"Replace across all files"},{k:["⌘","G"],d:"Find next match"},{k:["⇧","⌘","G"],d:"Find previous match"},{k:["⌥","Enter"],d:"Select all find matches"},{k:["⌥","⌘","C"],d:"Toggle case-sensitive search"},{k:["⌥","⌘","W"],d:"Toggle whole-word search"},{k:["⌥","⌘","R"],d:"Toggle regex search"},{k:["Enter"],d:"Next match (when find focused)"},{k:["⇧","Enter"],d:"Previous match (when find focused)"}]},{cat:"CURSOR / VSCODE MULTI-CURSOR",icon:"⌨",tag:"power",items:[{k:["⌥","+click"],d:"Insert cursor at click"},{k:["⌥","⌘","↑/↓"],d:"Insert cursor above/below"},{k:["⌘","D"],d:"Select next occurrence of word"},{k:["⇧","⌘","L"],d:"Select ALL occurrences"},{k:["⌘","F2"],d:"Select all occurrences of word"},{k:["⌘","L"],d:"Select current line"},{k:["⌘","U"],d:"Undo last cursor operation"},{k:["⇧","⌥","I"],d:"Insert cursor at end of each line"},{k:["⌃","⇧","⌘","←/→"],d:"Expand / Shrink selection"},{k:["⇧","⌥","drag"],d:"Column (box) selection"}]},{cat:"CURSOR / VSCODE NAV",icon:"⌨",tag:"editor",items:[{k:["⌃","G"],d:"Go to line…"},{k:["⇧","⌘","O"],d:"Go to symbol in file"},{k:["⌘","T"],d:"Go to symbol in workspace"},{k:["F12"],d:"Go to Definition"},{k:["⌥","F12"],d:"Peek Definition"},{k:["⇧","F12"],d:"Show all References"},{k:["F2"],d:"Rename Symbol"},{k:["⌘","."],d:"Quick Fix"},{k:["F8"],d:"Next error/warning"},{k:["⌃","-/⌃⇧-"],d:"Navigate back/forward"},{k:["⌘","K","⌘","←/→"],d:"Focus prev/next editor group"},{k:["⌘","K","P"],d:"Copy path of active file"},{k:["⌘","K","R"],d:"Reveal active file in Finder"}]},{cat:"CURSOR / VSCODE DEBUG",icon:"⌨",tag:"debug",items:[{k:["F5"],d:"Start / Continue debugging"},{k:["⇧","F5"],d:"Stop debugging"},{k:["F9"],d:"Toggle breakpoint"},{k:["F10"],d:"Step over"},{k:["F11"],d:"Step into"},{k:["⇧","F11"],d:"Step out"},{k:["⌘","K","⌘","I"],d:"Show hover (debug info)"},{k:["⇧","⌘","D"],d:"Show Debug panel"},{k:["⇧","⌘","Y"],d:"Show Debug Console"}]},{cat:"TERMINAL (SHELL)",icon:"▶",items:[{k:["⌃","C"],d:"Cancel / SIGINT"},{k:["⌃","Z"],d:"Suspend process (bg/fg)"},{k:["⌃","D"],d:"EOF / logout"},{k:["⌃","A"],d:"Move to line start"},{k:["⌃","E"],d:"Move to line end"},{k:["⌃","W"],d:"Delete word behind cursor"},{k:["⌃","U"],d:"Clear line before cursor"},{k:["⌃","K"],d:"Clear line after cursor"},{k:["⌃","R"],d:"Reverse search history"},{k:["⌃","S"],d:"Forward search history"},{k:["⌃","P"],d:"Previous command (same as ↑)"},{k:["⌃","N"],d:"Next command (same as ↓)"},{k:["⌃","L"],d:"Clear screen"},{k:["⌃","T"],d:"Swap two characters"},{k:["⌃","_"],d:"Undo last edit"},{k:["⌃","X","⌃","E"],d:"Edit command in $EDITOR"},{k:["⌥","B/F"],d:"Move word back/forward"},{k:["⌥","D"],d:"Delete word forward"},{k:["⌥","."],d:"Insert last argument of prev cmd"},{k:["Tab"],d:"Autocomplete"},{k:["!!"],d:"Repeat last command"},{k:["!$"],d:"Last argument of prev command"},{k:["!^"],d:"First argument of prev command"},{k:["!*"],d:"All arguments of prev command"}]},{cat:"STARTUP & BOOT",icon:"⏻",tag:"hardware",items:[{k:["Hold","⏻"],d:"Startup options (Apple Silicon)"},{k:["⌘","R"],d:"Recovery Mode (Intel, hold at boot)"},{k:["⌥"],d:"Startup Manager / boot picker (Intel)"},{k:["⇧"],d:"Safe Mode (hold at startup)"},{k:["⌘","⌥","P","R"],d:"Reset NVRAM (Intel, hold at chime)"},{k:["D"],d:"Apple Diagnostics (hold at boot)"},{k:["⌘","V"],d:"Verbose boot (Intel, hold at boot)"},{k:["T"],d:"Target Disk Mode (Intel, hold at boot)"},{k:["⇧","⌃","⌥","⏻"],d:"SMC reset (Intel laptop, hold 10s)"},{k:["⌥","⌘","⏻"],d:"DFU / Revive mode (Apple Silicon)"}]},{cat:"POWER & SLEEP",icon:"⏻",tag:"hidden",items:[{k:["⌃","⇧","⏻"],d:"Displays to sleep"},{k:["⌥","⌘","⏻"],d:"Mac to sleep"},{k:["⌃","⌘","⏻"],d:"Force restart (no save prompt)"},{k:["⌃","⌥","⌘","⏻"],d:"Quit all apps + shut down"},{k:["⌃","⏻"],d:"Restart / Sleep / Shut Down dialog"}]},{cat:"SPECIAL CHARACTERS",icon:"Ω",tag:"hidden",items:[{k:["⌃","⌘","Space"],d:"Emoji & Symbols viewer"},{k:["Fn","E"],d:"Emoji suggestions inline"},{k:["Fn","Fn"],d:"Character viewer"},{k:["Fn","D"],d:"Start/stop dictation"},{k:["Fn","N"],d:"Toggle Notification Center"},{k:["Fn","⇧","A"],d:"Open Launchpad"},{k:["⌘","⌘"],d:"Type to Siri (press twice)"},{k:["⌥","⇧","K"],d:"Apple logo symbol"},{k:["⌥","G"],d:"© Copyright symbol"},{k:["⌥","R"],d:"® Registered symbol"},{k:["⌥","2"],d:"™ Trademark"},{k:["⌥","⇧","2"],d:"€ Euro sign"},{k:["⌥","3"],d:"£ Pound sign"},{k:["⌥","8"],d:"• Bullet point"},{k:["⌥",";"],d:"… Ellipsis"},{k:["⌥","-"],d:"– En dash"},{k:["⌥","⇧","-"],d:"— Em dash"},{k:["⌥","[/]"],d:"\u201c \u201d Smart double quotes"},{k:["Hold key"],d:"Show accent popup for letter"}]},{cat:"TEXT FORMATTING",icon:"A",items:[{k:["⌘","B"],d:"Bold"},{k:["⌘","I"],d:"Italic"},{k:["⌘","U"],d:"Underline"},{k:["⌘","+/−"],d:"Font size up/down"},{k:["⌘","T"],d:"Show fonts panel"},{k:["⌘","⇧","C"],d:"Color picker"},{k:["⌥","⌘","C"],d:"Copy style"},{k:["⌥","⌘","V"],d:"Paste style"}]},{cat:"ACCESSIBILITY",icon:"♿",tag:"hidden",items:[{k:["⌥","⌘","F5"],d:"Accessibility shortcuts panel"},{k:["⌘","F5"],d:"Toggle VoiceOver"},{k:["⌥","⌘","8"],d:"Toggle zoom"},{k:["⌥","⌘","="],d:"Zoom in"},{k:["⌥","⌘","-"],d:"Zoom out"},{k:["⌃","⌥","⌘","8"],d:"Invert colors"},{k:["⌃","⌥","⌘",","],d:"Reduce contrast"},{k:["⌃","⌥","⌘","."],d:"Increase contrast"},{k:["⌥","⇧","Vol"],d:"Fine volume (¼ step)"},{k:["⌥","⇧","Bright"],d:"Fine brightness (¼ step)"},{k:["⌥","Vol"],d:"Open Sound preferences"},{k:["⌥","Bright"],d:"Open Display preferences"}]}];
+
+const TAG_COLORS={"Sequoia+":"#3cffa8",hidden:"#ff9f43",emacs:"#e056fd",editor:"#54a0ff",power:"#ff6b6b",debug:"#feca57",hardware:"#ff7979"};
+const total=S.reduce((a,c)=>a+c.items.length,0);
+
+let query="", activeCat=null, collapsed={};
+
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+function filter(){
+  const q=query.toLowerCase().trim();
+  if(!q) return S;
+  return S.map(c=>({...c,items:c.items.filter(i=>
+    i.d.toLowerCase().includes(q)||i.k.join(" ").toLowerCase().includes(q)||
+    c.cat.toLowerCase().includes(q)||(c.tag&&c.tag.toLowerCase().includes(q))
+  )})).filter(c=>c.items.length);
+}
+
+function keycap(k){ return `<span class="key">${esc(k)}</span>`; }
+
+function renderKeys(keys){
+  return keys.map((k,i)=>keycap(k)+(i<keys.length-1?'<span class="plus">+</span>':'')).join('');
+}
+
+function tagHTML(tag){
+  const c=TAG_COLORS[tag]||"rgba(60,255,170,0.3)";
+  return `<span class="tag" style="color:${c};background:${c}22;border:1px solid ${c}">${esc(tag)}</span>`;
+}
+
+function render(){
+  const filtered=filter();
+  const displayed=activeCat?filtered.filter(c=>c.cat===activeCat):filtered;
+  const matchCount=displayed.reduce((a,c)=>a+c.items.length,0);
+
+  $("meta").textContent=`// ${S.length} categories · ${total} entries · ${query?matchCount+" matched · ":""}includes Cursor/VSCode · Safari · Cocoa Emacs bindings · boot keys`;
+
+  // pills
+  let ph=`<button class="pill${!activeCat?" active":""}" data-cat="">[ALL]</button>`;
+  for(const c of S){
+    const label=c.cat.length>18?c.cat.slice(0,16)+"…":c.cat;
+    ph+=`<button class="pill${activeCat===c.cat?" active":""}" data-cat="${esc(c.cat)}">${esc(label)}</button>`;
+  }
+  $("pills").innerHTML=ph;
+
+  // content
+  if(!displayed.length){
+    $("content").innerHTML=`<div class="empty"><span class="warn">⚠</span> no match for "${esc(query)}"</div>`;
+    return;
+  }
+
+  let html="";
+  for(const c of displayed){
+    const col=collapsed[c.cat];
+    html+=`<div class="cat-card"><div class="cat-header${col?" collapsed":""}" data-toggle="${esc(c.cat)}">`;
+    html+=`<span class="chevron">▾</span><span class="icon">${c.icon}</span>`;
+    html+=`<span class="name">${esc(c.cat)}</span>`;
+    if(c.tag) html+=tagHTML(c.tag);
+    html+=`<span class="count">[${c.items.length}]</span></div>`;
+    if(!col){
+      html+='<div>';
+      for(const item of c.items){
+        html+=`<div class="row"><span class="desc"><span class="bullet"></span>${esc(item.d)}</span>`;
+        html+=`<div class="keys">${renderKeys(item.k)}</div></div>`;
+      }
+      html+='</div>';
+    }
+    html+='</div>';
+  }
+  $("content").innerHTML=html;
+}
+
+// Events
+$("search").addEventListener("input",e=>{
+  query=e.target.value;
+  $("searchWrap").classList.toggle("has-query",!!query);
+  render();
+});
+$("clearBtn").addEventListener("click",()=>{
+  query=""; $("search").value=""; $("searchWrap").classList.remove("has-query");
+  $("search").focus(); render();
+});
+$("pills").addEventListener("click",e=>{
+  const btn=e.target.closest(".pill"); if(!btn) return;
+  const cat=btn.dataset.cat;
+  activeCat=activeCat===cat||!cat?null:cat;
+  render();
+});
+$("content").addEventListener("click",e=>{
+  const hdr=e.target.closest(".cat-header"); if(!hdr) return;
+  const cat=hdr.dataset.toggle;
+  collapsed[cat]=!collapsed[cat];
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

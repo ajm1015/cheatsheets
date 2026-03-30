@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Guides</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0f0c;
+    --bg2: #0d1410;
+    --bg3: #111a15;
+    --border: #1a2e22;
+    --border-bright: #2a4a35;
+    --green: #3cffa8;
+    --green-dim: #1a7a4a;
+    --green-glow: rgba(60, 255, 168, 0.15);
+    --amber: #ffb84d;
+    --cyan: #5feaff;
+    --text: #c8e6d0;
+    --text-dim: #5a7a65;
+    --mono: 'SF Mono', 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Menlo', 'Consolas', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--mono);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Scanline */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* CRT vignette */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  .terminal {
+    width: 90%;
+    max-width: 560px;
+    border: 1px solid var(--border-bright);
+    background: var(--bg2);
+    box-shadow: 0 0 60px rgba(60, 255, 168, 0.05), 0 0 120px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Title bar */
+  .title-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
+
+  .title-bar-text {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-left: 8px;
+  }
+
+  /* Body */
+  .terminal-body {
+    padding: 28px 24px 32px;
+  }
+
+  .prompt-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .prompt {
+    color: var(--green);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .prompt-path {
+    color: var(--cyan);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .prompt-cmd {
+    color: var(--text);
+    font-size: 12px;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--green);
+    margin-left: 2px;
+    animation: blink 1.2s step-end infinite;
+    vertical-align: text-bottom;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .output {
+    margin-top: 20px;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    letter-spacing: 0.3px;
+  }
+
+  .output-line {
+    margin-bottom: 2px;
+  }
+
+  /* Cards */
+  .cards {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .card {
+    display: block;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    padding: 16px 18px;
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(60,255,168,0.03) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .card:hover {
+    border-color: var(--green-dim);
+    box-shadow: 0 0 24px rgba(60, 255, 168, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card-icon {
+    font-size: 20px;
+    margin-bottom: 8px;
+    display: block;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    letter-spacing: 0.3px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-stat {
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .card-stat-value {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .card-stat-label {
+    color: var(--text-dim);
+    margin-left: 4px;
+  }
+
+  .card-arrow {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--border-bright);
+    font-size: 16px;
+    transition: color 0.25s, transform 0.25s;
+    z-index: 1;
+  }
+
+  .card:hover .card-arrow {
+    color: var(--green);
+    transform: translateY(-50%) translateX(3px);
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 28px;
+    text-align: center;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    opacity: 0.6;
+  }
+
+  /* Ambient grid bg */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(60,255,168,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(60,255,168,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<div class="terminal">
+  <div class="title-bar">
+    <span class="dot dot-red"></span>
+    <span class="dot dot-yellow"></span>
+    <span class="dot dot-green"></span>
+    <span class="title-bar-text">field-guides — bash</span>
+  </div>
+
+  <div class="terminal-body">
+    <div class="prompt-line">
+      <span class="prompt">❯</span>
+      <span class="prompt-path">~/cheatsheets</span>
+      <span class="prompt-cmd">ls -la</span>
+    </div>
+
+    <div class="output">
+      <div class="output-line">drwxr-xr-x  2 user user  4096 Mar 28 12:00 .</div>
+      <div class="output-line">-rw-r--r--  1 user user  42K  Mar 28 12:00 windows-field-cheatsheet.html</div>
+      <div class="output-line">-rw-r--r--  1 user user  38K  Mar 18 21:30 macos-shortcuts.html</div>
+    </div>
+
+    <div class="prompt-line" style="margin-top: 16px;">
+      <span class="prompt">❯</span>
+      <span class="prompt-path">~/cheatsheets</span>
+      <span class="prompt-cmd">cat README</span>
+    </div>
+
+    <div class="output" style="margin-top: 8px;">
+      Dense field reference for desktop engineering.<br>
+      No fluff. Copy-paste ready. Built for speed.
+    </div>
+
+    <div class="cards">
+      <a href="windows-field-cheatsheet.html" class="card">
+        <span class="card-icon">🪟</span>
+        <div class="card-title">Windows Field Cheatsheet</div>
+        <div class="card-desc">Intune/Autopilot deployment, Windows break-fix, M365/Exchange/Teams, PowerShell one-liners</div>
+        <div class="card-meta">
+          <span class="card-stat"><span class="card-stat-value">33</span><span class="card-stat-label">entries</span></span>
+          <span class="card-stat"><span class="card-stat-value">5</span><span class="card-stat-label">sections</span></span>
+        </div>
+        <span class="card-arrow">→</span>
+      </a>
+
+      <a href="macos-shortcuts.html" class="card">
+        <span class="card-icon">🍎</span>
+        <div class="card-title">macOS Shortcut Cheatsheet</div>
+        <div class="card-desc">System, Finder, editing, terminal, Safari, Cursor/VSCode, accessibility, and more</div>
+        <div class="card-meta">
+          <span class="card-stat"><span class="card-stat-value">210+</span><span class="card-stat-label">shortcuts</span></span>
+          <span class="card-stat"><span class="card-stat-value">20</span><span class="card-stat-label">categories</span></span>
+        </div>
+        <span class="card-arrow">→</span>
+      </a>
+    </div>
+
+    <div class="prompt-line" style="margin-top: 24px;">
+      <span class="prompt">❯</span>
+      <span class="prompt-path">~/cheatsheets</span>
+      <span class="cursor"></span>
+    </div>
+
+    <div class="footer">FIELD GUIDES · 2026</div>
+  </div>
+</div>
+
+</body>
+</html>

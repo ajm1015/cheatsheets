@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows Desktop Field Cheatsheet</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0f0c;
+    --bg2: #0d1410;
+    --bg3: #111a15;
+    --border: #1a2e22;
+    --border-bright: #2a4a35;
+    --green: #3cffa8;
+    --green-dim: #1a7a4a;
+    --green-glow: rgba(60, 255, 168, 0.15);
+    --green-glow2: rgba(60, 255, 168, 0.08);
+    --amber: #ffb84d;
+    --red: #ff5f5f;
+    --cyan: #5feaff;
+    --text: #c8e6d0;
+    --text-dim: #5a7a65;
+    --mono: 'SF Mono', 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Menlo', 'Consolas', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--mono);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.08) 2px,
+      rgba(0, 0, 0, 0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* CRT vignette */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.4) 100%);
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 32px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--bg3) 0%, var(--bg) 100%);
+    position: relative;
+  }
+
+  .header::before {
+    content: '>';
+    position: absolute;
+    top: 32px;
+    left: 24px;
+    color: var(--green);
+    font-size: 20px;
+    font-weight: 700;
+    animation: blink 1.2s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .header h1 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-left: 24px;
+    text-shadow: 0 0 20px var(--green-glow);
+  }
+
+  .header .subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 24px;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .header .meta {
+    font-size: 10px;
+    color: var(--green-dim);
+    margin-left: 24px;
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+
+  /* ── Search ── */
+  .search-wrap {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .search-box {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 10px 14px 10px 36px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .search-box::placeholder { color: var(--text-dim); }
+
+  .search-box:focus {
+    border-color: var(--green-dim);
+    box-shadow: 0 0 12px var(--green-glow2), inset 0 0 8px var(--green-glow2);
+  }
+
+  .search-wrap::before {
+    content: '⌕';
+    position: absolute;
+    left: 38px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .search-stats {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+    display: none;
+  }
+
+  .search-stats.active { display: block; }
+
+  /* ── Category nav ── */
+  .cat-nav {
+    display: flex;
+    gap: 0;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .cat-nav::-webkit-scrollbar { display: none; }
+
+  .cat-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .cat-btn:hover { color: var(--text); }
+
+  .cat-btn.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+  }
+
+  /* ── Sections ── */
+  .content { padding: 0 24px 60px; }
+
+  .section {
+    margin-top: 32px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title .icon {
+    font-size: 14px;
+    opacity: 0.8;
+  }
+
+  .section-title .count {
+    font-size: 9px;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+
+  /* ── Entry cards ── */
+  .entry {
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    transition: border-color 0.2s;
+  }
+
+  .entry:hover {
+    border-color: var(--border-bright);
+  }
+
+  .entry-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+
+  .entry-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.5px;
+  }
+
+  .entry-tag {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid;
+    line-height: 1;
+  }
+
+  .tag-warn { color: var(--amber); border-color: rgba(255, 184, 77, 0.3); background: rgba(255, 184, 77, 0.08); }
+  .tag-danger { color: var(--red); border-color: rgba(255, 95, 95, 0.3); background: rgba(255, 95, 95, 0.08); }
+  .tag-info { color: var(--cyan); border-color: rgba(95, 234, 255, 0.3); background: rgba(95, 234, 255, 0.08); }
+
+  .entry-body { padding: 12px 14px; }
+
+  .entry-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+
+  .entry-note {
+    font-size: 10px;
+    color: var(--amber);
+    margin-top: 8px;
+    padding: 6px 10px;
+    border-left: 2px solid var(--amber);
+    background: rgba(255, 184, 77, 0.05);
+  }
+
+  /* ── Code blocks ── */
+  pre {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    overflow-x: auto;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text);
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  pre .lang-label {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--green-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  pre .comment { color: var(--text-dim); }
+  pre .cmd { color: var(--green); }
+  pre .string { color: var(--amber); }
+  pre .flag { color: var(--cyan); }
+
+  /* ── Reference tables ── */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .ref-table th {
+    text-align: left;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--green-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-bright);
+    background: var(--bg3);
+  }
+
+  .ref-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .ref-table tr:hover td {
+    background: var(--green-glow2);
+  }
+
+  .ref-table code {
+    color: var(--green);
+    font-size: 10px;
+    background: rgba(60, 255, 168, 0.06);
+    padding: 1px 5px;
+    border: 1px solid rgba(60, 255, 168, 0.12);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  /* ── Highlight match ── */
+  mark {
+    background: rgba(60, 255, 168, 0.25);
+    color: var(--green);
+    padding: 0 2px;
+    border-radius: 1px;
+  }
+
+  /* ── Copy button ── */
+  .copy-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    z-index: 2;
+  }
+
+  .copy-btn:hover {
+    color: var(--green);
+    border-color: var(--green-dim);
+  }
+
+  .copy-btn.copied {
+    color: var(--green);
+    border-color: var(--green);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .header, .content { padding-left: 16px; padding-right: 16px; }
+    .cat-nav { padding: 0 16px; }
+    .search-wrap { padding: 12px 16px; }
+    .search-wrap::before { left: 30px; }
+  }
+
+  /* ── Smooth hide for filtered entries ── */
+  .entry.hidden, .section.hidden {
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Windows Desktop Field Cheatsheet</h1>
+  <div class="subtitle">Intune · Autopilot · M365 · Break-Fix · PowerShell</div>
+  <div class="meta">LAST UPDATED: 2026-03-28 · ENTRIES: <span id="total-count">0</span></div>
+</div>
+
+<div class="search-wrap">
+  <input type="text" class="search-box" id="search" placeholder="Search commands, descriptions, keywords..." autocomplete="off" spellcheck="false">
+  <div class="search-stats" id="search-stats"></div>
+</div>
+
+<nav class="cat-nav" id="cat-nav">
+  <button class="cat-btn active" data-cat="all">ALL</button>
+  <button class="cat-btn" data-cat="intune">INTUNE / AUTOPILOT</button>
+  <button class="cat-btn" data-cat="breakfix">BREAK-FIX</button>
+  <button class="cat-btn" data-cat="m365">M365 / EXCHANGE / TEAMS</button>
+  <button class="cat-btn" data-cat="pwsh">POWERSHELL ONE-LINERS</button>
+  <button class="cat-btn" data-cat="ref">QUICK REFERENCE</button>
+</nav>
+
+<div class="content" id="content">
+
+  <!-- ═══════════ INTUNE / AUTOPILOT ═══════════ -->
+  <div class="section" data-cat="intune" id="sec-intune">
+    <div class="section-title">
+      <span class="icon">📦</span> Intune / Autopilot Field Deployment
+      <span class="count"></span>
+    </div>
+
+    <div class="entry" data-keywords="intune sync ime restart service force check-in apps">
+      <div class="entry-header">
+        <span class="entry-title">Force Intune App Sync (IME Restart)</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">Restart IntuneManagementExtension service to force immediate app check-in. The loop version is the go-to field trick during setup.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># One-shot sync</span>
+<span class="cmd">Restart-Service</span> IntuneManagementExtension <span class="flag">-Force</span>
+
+<span class="comment"># Loop during setup (5 min interval)</span>
+<span class="cmd">while</span> ($true) {
+    Restart-Service IntuneManagementExtension -Force
+    Write-Host <span class="string">"[$(Get-Date -Format 'HH:mm:ss')] IME restarted"</span>
+    Start-Sleep -Seconds 300
+}</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="intune policy sync config mdm scheduled task pushlaunch dmclient">
+      <div class="entry-header">
+        <span class="entry-title">Force Config / Policy Sync</span>
+        <span class="entry-tag tag-info">SEPARATE FROM APP SYNC</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">Policy sync is handled by a different mechanism than app sync. Trigger the MDM scheduled task directly.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Trigger MDM policy sync scheduled task</span>
+<span class="cmd">Get-ScheduledTask</span> | Where-Object { $_.TaskName <span class="flag">-match</span> <span class="string">'PushLaunch'</span> } | <span class="cmd">Start-ScheduledTask</span>
+
+<span class="comment"># Or hit device management sync directly</span>
+$EnrollID = (Get-ScheduledTask | Where-Object { $_.TaskPath -match <span class="string">'DMClient'</span> }).TaskPath | Select-Object -First 1
+<span class="cmd">Start-ScheduledTask</span> -TaskPath $EnrollID -TaskName <span class="string">"PushLaunch"</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="autopilot esp enrollment status page stuck log ime tail">
+      <div class="entry-header">
+        <span class="entry-title">Check Autopilot / ESP Status</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">What's stuck during ESP — tail the IME log, check enrollment tracking registry.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Last 50 lines of IME log</span>
+<span class="cmd">Get-Content</span> <span class="string">"$env:ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log"</span> <span class="flag">-Tail 50</span>
+
+<span class="comment"># Real-time tail</span>
+<span class="cmd">Get-Content</span> <span class="string">"$env:ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log"</span> <span class="flag">-Wait -Tail 20</span>
+
+<span class="comment"># ESP tracking state (registry)</span>
+<span class="cmd">Get-ItemProperty</span> <span class="string">"HKLM:\SOFTWARE\Microsoft\Enrollments\*\FirstSync"</span> -ErrorAction SilentlyContinue</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="intune win32 app install state registry detection">
+      <div class="entry-header">
+        <span class="entry-title">Check App Install States (Registry)</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">What Intune thinks is installed — check Win32App registry for install results.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="cmd">Get-ChildItem</span> <span class="string">"HKLM:\SOFTWARE\Microsoft\IntuneManagementExtension\Win32App"</span> -Recurse |
+    Get-ItemProperty | Where-Object { $_.Result } |
+    Select-Object PSChildName, Result</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="compliance mdm diagnostic report html">
+      <div class="entry-header">
+        <span class="entry-title">Check Compliance State Locally</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">Dump MDM diagnostic report to HTML — shows compliance, enrolled policies, certs.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="cmd">mdmdiagnosticstool.exe</span> <span class="flag">-out</span> <span class="string">"$env:TEMP\MDMDiag"</span>
+<span class="cmd">Start-Process</span> <span class="string">"$env:TEMP\MDMDiag\MDMDiagReport.html"</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="autopilot oobe bypass skip escape hatch emergency">
+      <div class="entry-header">
+        <span class="entry-title">Skip Autopilot OOBE (Escape Hatch)</span>
+        <span class="entry-tag tag-danger">DESTRUCTIVE</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">At OOBE network screen, Shift+F10 for cmd. Deletes Autopilot profile — device goes to local OOBE.</div>
+        <pre><span class="lang-label">CMD</span><span class="cmd">reg delete</span> <span class="string">"HKLM\SOFTWARE\Microsoft\Provisioning\AutopilotPolicy"</span> <span class="flag">/f</span>
+<span class="cmd">shutdown</span> <span class="flag">/r /t 0</span></pre>
+        <div class="entry-note">⚠ Device loses Autopilot profile. Must re-register in Intune afterward.</div>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="autopilot register hardware hash profile upload">
+      <div class="entry-header">
+        <span class="entry-title">Re-register Autopilot Profile</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">Grab hardware hash and upload to Autopilot.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="cmd">Install-Script</span> Get-WindowsAutopilotInfo <span class="flag">-Force</span>
+<span class="cmd">Get-WindowsAutopilotInfo</span> <span class="flag">-Online</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="intune enrollment clear reset mdm remove unenroll">
+      <div class="entry-header">
+        <span class="entry-title">Clear Intune Enrollment (No Wipe)</span>
+        <span class="entry-tag tag-warn">USE CAUTION</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">Remove MDM enrollment — device stays on Entra but loses Intune management. Re-enrolls automatically on next login if auto-enrollment is on.</div>
+        <pre><span class="lang-label">POWERSHELL</span>$EnrollPath = <span class="string">"HKLM:\SOFTWARE\Microsoft\Enrollments"</span>
+<span class="cmd">Get-ChildItem</span> $EnrollPath | ForEach-Object {
+    $props = Get-ItemProperty $_.PSPath
+    <span class="cmd">if</span> ($props.ProviderID -eq <span class="string">'MS DM Server'</span>) {
+        Remove-Item $_.PSPath <span class="flag">-Recurse -Force</span>
+    }
+}
+<span class="cmd">Restart-Computer</span> <span class="flag">-Force</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ BREAK-FIX ═══════════ -->
+  <div class="section" data-cat="breakfix" id="sec-breakfix">
+    <div class="section-title">
+      <span class="icon">🔧</span> Windows Break-Fix &amp; Diagnostics
+      <span class="count"></span>
+    </div>
+
+    <div class="entry" data-keywords="credential auth loop outlook teams onedrive wam token broker cmdkey cache sso">
+      <div class="entry-header">
+        <span class="entry-title">Credential / Auth Issues</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">Nuke cached credentials and WAM token broker cache. Fixes Outlook, Teams, OneDrive auth loops.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Nuke all cached credentials</span>
+<span class="cmd">cmdkey</span> /list | ForEach-Object {
+    if ($_ -match <span class="string">'Target:\s+(.+)'</span>) { <span class="cmd">cmdkey</span> /delete:$Matches[1] }
+}
+
+<span class="comment"># Clear specific Microsoft creds</span>
+<span class="cmd">cmdkey</span> /delete:MicrosoftOffice16_Data:SSPI
+
+<span class="comment"># Clear WAM token broker cache</span>
+$wamPath = <span class="string">"$env:LOCALAPPDATA\Packages\Microsoft.AAD.BrokerPlugin_cw5n1h2txyewy"</span>
+<span class="cmd">if</span> (Test-Path $wamPath) {
+    Get-ChildItem <span class="string">"$wamPath\AC\TokenBroker\Accounts"</span> -ErrorAction SilentlyContinue | <span class="cmd">Remove-Item</span> <span class="flag">-Force</span>
+}</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="bitlocker recovery key suspend encryption manage-bde tpm">
+      <div class="entry-header">
+        <span class="entry-title">BitLocker</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Get recovery key locally</span>
+(<span class="cmd">Get-BitLockerVolume</span> -MountPoint <span class="string">"C:"</span>).KeyProtector |
+    Where-Object { $_.KeyProtectorType -eq <span class="string">'RecoveryPassword'</span> } |
+    Select-Object -Expand RecoveryPassword
+
+<span class="comment"># Suspend for 1 reboot (BIOS update, hardware change)</span>
+<span class="cmd">Suspend-BitLocker</span> -MountPoint <span class="string">"C:"</span> <span class="flag">-RebootCount 1</span>
+
+<span class="comment"># Suspend for 3 reboots (in-place upgrade)</span>
+<span class="cmd">manage-bde</span> <span class="flag">-protectors -disable</span> C: <span class="flag">-RebootCount 3</span>
+
+<span class="comment"># Check encryption status</span>
+<span class="cmd">manage-bde</span> <span class="flag">-status</span> C:</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="windows update stuck broken reset wuauserv cryptsvc bits msiserver softwaredistribution catroot2">
+      <div class="entry-header">
+        <span class="entry-title">Windows Update Stuck / Broken</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">Reset WU components — stops services, clears caches, restarts, forces detection.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Reset Windows Update components</span>
+<span class="cmd">Stop-Service</span> wuauserv, cryptSvc, bits, msiserver <span class="flag">-Force</span>
+<span class="cmd">Remove-Item</span> <span class="string">"$env:SystemRoot\SoftwareDistribution"</span> <span class="flag">-Recurse -Force</span> -ErrorAction SilentlyContinue
+<span class="cmd">Remove-Item</span> <span class="string">"$env:SystemRoot\System32\catroot2"</span> <span class="flag">-Recurse -Force</span> -ErrorAction SilentlyContinue
+<span class="cmd">Start-Service</span> wuauserv, cryptSvc, bits, msiserver
+
+<span class="comment"># Force detection</span>
+(New-Object -ComObject Microsoft.Update.AutoUpdate).<span class="cmd">DetectNow</span>()
+<span class="cmd">usoclient</span> StartScan</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="reboot pending restart required check registry component based servicing">
+      <div class="entry-header">
+        <span class="entry-title">Reboot Pending Detection</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">Check all common reboot-pending indicators in one sweep.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Check all reboot-pending flags</span>
+$checks = @{
+    <span class="string">'CBS RebootPending'</span>     = Test-Path <span class="string">'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending'</span>
+    <span class="string">'WU RebootRequired'</span>     = Test-Path <span class="string">'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired'</span>
+    <span class="string">'PendingFileRename'</span>     = [bool](Get-ItemProperty <span class="string">'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager'</span> -Name PendingFileRenameOperations -ErrorAction SilentlyContinue)
+    <span class="string">'SCCM RebootPending'</span>    = [bool](Invoke-CimMethod -Namespace <span class="string">'root\ccm\ClientSDK'</span> -ClassName CCM_ClientUtilities -MethodName DetermineIfRebootPending -ErrorAction SilentlyContinue)
+}
+$checks | Format-Table -AutoSize</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="network stack reset winsock ip dns flush tcp">
+      <div class="entry-header">
+        <span class="entry-title">Network Stack Reset</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">CMD (ADMIN)</span><span class="cmd">netsh</span> winsock reset
+<span class="cmd">netsh</span> int ip reset
+<span class="cmd">ipconfig</span> /release
+<span class="cmd">ipconfig</span> /renew
+<span class="cmd">ipconfig</span> /flushdns
+<span class="cmd">netsh</span> int tcp reset</pre>
+        <div class="entry-note">⚠ Requires reboot after winsock/ip reset.</div>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="disk space cleanup temp winsxs large files hunt">
+      <div class="entry-header">
+        <span class="entry-title">Disk Space Hunters</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Top 20 largest files on C:</span>
+<span class="cmd">Get-ChildItem</span> C:\ <span class="flag">-Recurse -File</span> -ErrorAction SilentlyContinue |
+    Sort-Object Length <span class="flag">-Descending</span> |
+    Select-Object -First 20 FullName, @{N=<span class="string">'MB'</span>;E={[math]::Round($_.Length/1MB,1)}}
+
+<span class="comment"># Clean WinSxS</span>
+<span class="cmd">Dism.exe</span> /Online /Cleanup-Image /StartComponentCleanup <span class="flag">/ResetBase</span>
+
+<span class="comment"># Clear temp</span>
+<span class="cmd">Remove-Item</span> <span class="string">"$env:TEMP\*"</span> <span class="flag">-Recurse -Force</span> -ErrorAction SilentlyContinue
+<span class="cmd">Remove-Item</span> <span class="string">"C:\Windows\Temp\*"</span> <span class="flag">-Recurse -Force</span> -ErrorAction SilentlyContinue</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="bsod crash blue screen bugcheck minidump wer system error">
+      <div class="entry-header">
+        <span class="entry-title">BSOD / Crash Analysis</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Last 5 bugchecks</span>
+<span class="cmd">Get-WinEvent</span> -FilterHashtable @{
+    LogName=<span class="string">'System'</span>
+    ProviderName=<span class="string">'Microsoft-Windows-WER-SystemErrorReporting'</span>
+} -MaxEvents 5 | Select-Object TimeCreated, Message
+
+<span class="comment"># Check minidump existence</span>
+<span class="cmd">Get-ChildItem</span> <span class="string">"$env:SystemRoot\Minidump"</span> -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime <span class="flag">-Descending</span> |
+    Select-Object -First 5 Name, LastWriteTime, @{N=<span class="string">'KB'</span>;E={[math]::Round($_.Length/1KB)}}</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="service failed stopped automatic startup troubleshooting">
+      <div class="entry-header">
+        <span class="entry-title">Failed Services Finder</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Automatic services that aren't running</span>
+<span class="cmd">Get-Service</span> | Where-Object {
+    $_.StartType -ne <span class="string">'Disabled'</span> -and
+    $_.Status -ne <span class="string">'Running'</span> -and
+    $_.StartType -eq <span class="string">'Automatic'</span>
+} | Select-Object Name, Status, StartType</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="scheduled task failed last run result error">
+      <div class="entry-header">
+        <span class="entry-title">Scheduled Task Failures</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="cmd">Get-ScheduledTask</span> | <span class="cmd">Get-ScheduledTaskInfo</span> |
+    Where-Object { $_.LastTaskResult -ne 0 -and $_.LastTaskResult -ne 267009 } |
+    Select-Object TaskName, LastRunTime, LastTaskResult</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="temporary profile loop profilelist bak sid registry temp user">
+      <div class="entry-header">
+        <span class="entry-title">Temporary Profile Loop Fix</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">User gets a temp profile on every login. Caused by .bak SID key in ProfileList registry.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Find the .bak SID key</span>
+<span class="cmd">Get-ChildItem</span> <span class="string">"HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"</span> |
+    Where-Object { $_.PSChildName -match <span class="string">'\.bak$'</span> }
+
+<span class="comment"># Fix: rename .bak key to remove the suffix</span>
+<span class="comment"># 1. If both S-1-5-21-xxx and S-1-5-21-xxx.bak exist:</span>
+<span class="comment">#    - Rename S-1-5-21-xxx → S-1-5-21-xxx.old</span>
+<span class="comment">#    - Rename S-1-5-21-xxx.bak → S-1-5-21-xxx</span>
+<span class="comment">#    - In the renamed key, set State = 0, RefCount = 0</span>
+<span class="comment"># 2. Reboot</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ M365 ═══════════ -->
+  <div class="section" data-cat="m365" id="sec-m365">
+    <div class="section-title">
+      <span class="icon">☁️</span> M365 / Exchange / Teams
+      <span class="count"></span>
+    </div>
+
+    <div class="entry" data-keywords="outlook profile remove reset auth loop connect won't sign in">
+      <div class="entry-header">
+        <span class="entry-title">Outlook Won't Connect / Auth Loop</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">Order of operations: 1) Nuke credential manager → 2) Clear WAM cache → 3) Remove Outlook profile → 4) Relaunch.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Blow away Outlook profile (user will re-setup)</span>
+$profilePath = <span class="string">"HKCU:\Software\Microsoft\Office\16.0\Outlook\Profiles"</span>
+<span class="cmd">Get-ChildItem</span> $profilePath | <span class="cmd">Remove-Item</span> <span class="flag">-Recurse -Force</span>
+<span class="comment"># Outlook will prompt for new profile setup on launch</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="teams classic cache clear add-in re-register reset appdata">
+      <div class="entry-header">
+        <span class="entry-title">Teams Classic Cache Clear + Add-in Re-register</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Kill Teams Classic</span>
+<span class="cmd">Stop-Process</span> -Name Teams <span class="flag">-Force</span> -ErrorAction SilentlyContinue
+
+<span class="comment"># Clear cache</span>
+$teamsCache = <span class="string">"$env:APPDATA\Microsoft\Teams"</span>
+@(<span class="string">'Cache'</span>,<span class="string">'blob_storage'</span>,<span class="string">'databases'</span>,<span class="string">'GPUcache'</span>,<span class="string">'IndexedDB'</span>,<span class="string">'Local Storage'</span>,<span class="string">'tmp'</span>) | ForEach-Object {
+    <span class="cmd">Remove-Item</span> <span class="string">"$teamsCache\$_\*"</span> <span class="flag">-Recurse -Force</span> -ErrorAction SilentlyContinue
+}
+
+<span class="comment"># Re-register Teams add-in for Outlook</span>
+<span class="cmd">regsvr32</span> /n /i:user <span class="string">"$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin\*\x64\Microsoft.Teams.AddinLoader.dll"</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="teams new reset cache clear msix modern localcache">
+      <div class="entry-header">
+        <span class="entry-title">New Teams Reset</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Kill New Teams</span>
+<span class="cmd">Stop-Process</span> -Name ms-teams <span class="flag">-Force</span> -ErrorAction SilentlyContinue
+
+<span class="comment"># Clear New Teams cache</span>
+<span class="cmd">Remove-Item</span> <span class="string">"$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\*"</span> <span class="flag">-Recurse -Force</span> -ErrorAction SilentlyContinue</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="onedrive sync reset cache stuck not syncing">
+      <div class="entry-header">
+        <span class="entry-title">OneDrive Sync Reset</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">CMD</span><span class="cmd">%localappdata%\Microsoft\OneDrive\onedrive.exe</span> <span class="flag">/reset</span>
+
+<span class="comment">:: If no icon reappears after 2 min, relaunch:</span>
+<span class="cmd">%localappdata%\Microsoft\OneDrive\onedrive.exe</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="shared mailbox timezone exchange online calendar">
+      <div class="entry-header">
+        <span class="entry-title">Shared Mailbox Timezone Fix</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">Shared mailbox showing wrong times — set timezone via EXO PowerShell.</div>
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Requires Exchange Online PowerShell module</span>
+<span class="cmd">Set-MailboxCalendarConfiguration</span> -Identity <span class="string">"shared@domain.com"</span> <span class="flag">-WorkingHoursTimeZone</span> <span class="string">"Mountain Standard Time"</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="email headers view source outlook new classic">
+      <div class="entry-header">
+        <span class="entry-title">Email Headers Access</span>
+      </div>
+      <div class="entry-body">
+        <div class="entry-desc">New Outlook → right-click message in list → View Source. Classic/Legacy Outlook lacks this — switch to New Outlook.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ POWERSHELL ONE-LINERS ═══════════ -->
+  <div class="section" data-cat="pwsh" id="sec-pwsh">
+    <div class="section-title">
+      <span class="icon">⚡</span> PowerShell One-Liners
+      <span class="count"></span>
+    </div>
+
+    <div class="entry" data-keywords="device info serial number model manufacturer hostname computer system">
+      <div class="entry-header">
+        <span class="entry-title">Device Info + Serial Number</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="cmd">Get-CimInstance</span> Win32_ComputerSystem | Select-Object Name, Manufacturer, Model, TotalPhysicalMemory
+<span class="cmd">Get-CimInstance</span> Win32_BIOS | Select-Object SerialNumber</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="entra azure ad join status dsregcmd tenant device">
+      <div class="entry-header">
+        <span class="entry-title">Entra Join Status</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">CMD</span><span class="cmd">dsregcmd</span> <span class="flag">/status</span>
+
+<span class="comment">:: Quick check — just join type</span>
+<span class="cmd">dsregcmd</span> /status | <span class="cmd">findstr</span> /i <span class="string">"AzureAdJoined DomainJoined DeviceId TenantName"</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="user profile list size path sid local accounts">
+      <div class="entry-header">
+        <span class="entry-title">User Profiles</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="cmd">Get-CimInstance</span> Win32_UserProfile | Where-Object { !$_.Special } |
+    Select-Object LocalPath, SID, LastUseTime, @{N=<span class="string">'SizeMB'</span>;E={
+        [math]::Round((Get-ChildItem $_.LocalPath -Recurse -Force -ErrorAction SilentlyContinue |
+        Measure-Object Length -Sum).Sum / 1MB)
+    }} | Sort-Object SizeMB <span class="flag">-Descending</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="software inventory installed programs registry uninstall both hives 32 64">
+      <div class="entry-header">
+        <span class="entry-title">Software Inventory (Both Hives)</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span>$paths = @(
+    <span class="string">'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'</span>,
+    <span class="string">'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'</span>
+)
+<span class="cmd">Get-ItemProperty</span> $paths -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName } |
+    Select-Object DisplayName, DisplayVersion, Publisher, InstallDate |
+    Sort-Object DisplayName</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="winget install upgrade list search package">
+      <div class="entry-header">
+        <span class="entry-title">Winget Shortcuts</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">CMD</span><span class="cmd">winget</span> list                          <span class="comment">:: Installed packages</span>
+<span class="cmd">winget</span> upgrade                       <span class="comment">:: Available updates</span>
+<span class="cmd">winget</span> upgrade <span class="flag">--all</span>                  <span class="comment">:: Update everything</span>
+<span class="cmd">winget</span> install <span class="flag">--id</span> <span class="string">Microsoft.Edge</span>    <span class="comment">:: Install by ID</span>
+<span class="cmd">winget</span> search <span class="string">chrome</span>                  <span class="comment">:: Search packages</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="group policy intune combo sync gpupdate force refresh">
+      <div class="entry-header">
+        <span class="entry-title">GP + Intune Combo Sync</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># GP refresh + Intune policy sync + IME restart in one shot</span>
+<span class="cmd">gpupdate</span> <span class="flag">/force</span>
+Get-ScheduledTask | Where-Object { $_.TaskName -match <span class="string">'PushLaunch'</span> } | <span class="cmd">Start-ScheduledTask</span>
+<span class="cmd">Restart-Service</span> IntuneManagementExtension <span class="flag">-Force</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="remote powershell invoke command enter-pssession winrm">
+      <div class="entry-header">
+        <span class="entry-title">Remote Commands</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># One-shot remote command</span>
+<span class="cmd">Invoke-Command</span> -ComputerName <span class="string">HOSTNAME</span> -ScriptBlock { Get-Service WinRM }
+
+<span class="comment"># Interactive remote session</span>
+<span class="cmd">Enter-PSSession</span> -ComputerName <span class="string">HOSTNAME</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="certificate expiry check cert store expiration ssl tls">
+      <div class="entry-header">
+        <span class="entry-title">Certificate Expiry Check</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Certs expiring within 30 days</span>
+<span class="cmd">Get-ChildItem</span> Cert:\LocalMachine\My |
+    Where-Object { $_.NotAfter -lt (Get-Date).AddDays(30) } |
+    Select-Object Subject, NotAfter, Thumbprint</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="event log query filter error warning application system security">
+      <div class="entry-header">
+        <span class="entry-title">Event Log Queries</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="comment"># Last 20 errors in System log</span>
+<span class="cmd">Get-WinEvent</span> -FilterHashtable @{ LogName=<span class="string">'System'</span>; Level=2 } -MaxEvents 20 |
+    Select-Object TimeCreated, ProviderName, Message
+
+<span class="comment"># Errors from last 24 hours across System + Application</span>
+<span class="cmd">Get-WinEvent</span> -FilterHashtable @{
+    LogName=<span class="string">'System'</span>,<span class="string">'Application'</span>; Level=2
+    StartTime=(Get-Date).AddHours(-24)
+} | Select-Object TimeCreated, LogName, ProviderName, Message</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="print queue clear stuck spooler printer nuke purge">
+      <div class="entry-header">
+        <span class="entry-title">Print Queue Nuke</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="cmd">Stop-Service</span> Spooler <span class="flag">-Force</span>
+<span class="cmd">Remove-Item</span> <span class="string">"$env:SystemRoot\System32\spool\PRINTERS\*"</span> <span class="flag">-Force</span>
+<span class="cmd">Start-Service</span> Spooler</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="defender antivirus status real-time protection scan malware">
+      <div class="entry-header">
+        <span class="entry-title">Defender Status</span>
+      </div>
+      <div class="entry-body">
+        <pre><span class="lang-label">POWERSHELL</span><span class="cmd">Get-MpComputerStatus</span> | Select-Object AntivirusEnabled, RealTimeProtectionEnabled,
+    AntivirusSignatureLastUpdated, QuickScanEndTime, FullScanEndTime</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ QUICK REFERENCE ═══════════ -->
+  <div class="section" data-cat="ref" id="sec-ref">
+    <div class="section-title">
+      <span class="icon">📋</span> Quick Reference
+      <span class="count"></span>
+    </div>
+
+    <div class="entry" data-keywords="log path cache location file directory ime teams outlook onedrive minidump winsxs">
+      <div class="entry-header">
+        <span class="entry-title">Key Log &amp; Cache Paths</span>
+      </div>
+      <div class="entry-body">
+        <table class="ref-table">
+          <thead><tr><th>Item</th><th>Path</th></tr></thead>
+          <tbody>
+            <tr><td>IME logs</td><td><code>%ProgramData%\Microsoft\IntuneManagementExtension\Logs\</code></td></tr>
+            <tr><td>MDM diagnostic</td><td><code>mdmdiagnosticstool.exe -out &lt;folder&gt;</code></td></tr>
+            <tr><td>Teams Classic logs</td><td><code>%AppData%\Microsoft\Teams\logs.txt</code></td></tr>
+            <tr><td>Teams Classic cache</td><td><code>%AppData%\Microsoft\Teams\</code></td></tr>
+            <tr><td>New Teams logs</td><td><code>%LocalAppData%\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\</code></td></tr>
+            <tr><td>OneDrive logs</td><td><code>%LocalAppData%\Microsoft\OneDrive\logs\</code></td></tr>
+            <tr><td>Outlook profiles</td><td><code>HKCU:\Software\Microsoft\Office\16.0\Outlook\Profiles</code></td></tr>
+            <tr><td>Minidumps</td><td><code>%SystemRoot%\Minidump\</code></td></tr>
+            <tr><td>WU logs</td><td><code>Get-WindowsUpdateLog</code> (generates from ETL)</td></tr>
+            <tr><td>WinSxS</td><td><code>%SystemRoot%\WinSxS\</code></td></tr>
+            <tr><td>WAM token cache</td><td><code>%LocalAppData%\Packages\Microsoft.AAD.BrokerPlugin_cw5n1h2txyewy\</code></td></tr>
+            <tr><td>Setup logs</td><td><code>C:\Windows\Panther\setupact.log</code></td></tr>
+            <tr><td>Setup errors</td><td><code>C:\Windows\Panther\setuperr.log</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="exit code error return msi intune install failure meaning hex">
+      <div class="entry-header">
+        <span class="entry-title">Exit Code Cheat Sheet</span>
+      </div>
+      <div class="entry-body">
+        <table class="ref-table">
+          <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>0</code></td><td>Success</td></tr>
+            <tr><td><code>1</code></td><td>General failure</td></tr>
+            <tr><td><code>2</code></td><td>File not found</td></tr>
+            <tr><td><code>3</code></td><td>Path not found</td></tr>
+            <tr><td><code>5</code></td><td>Access denied</td></tr>
+            <tr><td><code>1603</code></td><td>MSI fatal error during install</td></tr>
+            <tr><td><code>1618</code></td><td>Another install in progress</td></tr>
+            <tr><td><code>1641</code></td><td>Reboot required to complete</td></tr>
+            <tr><td><code>3010</code></td><td>Reboot required (soft)</td></tr>
+            <tr><td><code>0x80070005</code></td><td>E_ACCESSDENIED</td></tr>
+            <tr><td><code>0x80073D21</code></td><td>MSIX needs framework dependency</td></tr>
+            <tr><td><code>0x87D1041C</code></td><td>Intune app detection failed</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  WINDOWS DESKTOP FIELD CHEATSHEET · 2026 · BUILT FOR SPEED
+</div>
+
+<script>
+(function() {
+  // Count entries
+  const allEntries = document.querySelectorAll('.entry');
+  document.getElementById('total-count').textContent = allEntries.length;
+
+  // Count per section
+  document.querySelectorAll('.section').forEach(sec => {
+    const count = sec.querySelectorAll('.entry').length;
+    const countEl = sec.querySelector('.count');
+    if (countEl) countEl.textContent = count + ' entries';
+  });
+
+  // Category nav
+  const catBtns = document.querySelectorAll('.cat-btn');
+  const sections = document.querySelectorAll('.section');
+
+  catBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cat = btn.dataset.cat;
+      catBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      sections.forEach(sec => {
+        if (cat === 'all' || sec.dataset.cat === cat) {
+          sec.classList.remove('hidden');
+        } else {
+          sec.classList.add('hidden');
+        }
+      });
+
+      // Clear search when switching categories
+      document.getElementById('search').value = '';
+      allEntries.forEach(e => e.classList.remove('hidden'));
+      document.getElementById('search-stats').classList.remove('active');
+    });
+  });
+
+  // Search
+  const searchInput = document.getElementById('search');
+  const searchStats = document.getElementById('search-stats');
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+
+    if (!q) {
+      allEntries.forEach(e => e.classList.remove('hidden'));
+      sections.forEach(s => s.classList.remove('hidden'));
+      searchStats.classList.remove('active');
+      // Re-apply category filter
+      const activeCat = document.querySelector('.cat-btn.active').dataset.cat;
+      if (activeCat !== 'all') {
+        sections.forEach(sec => {
+          if (sec.dataset.cat !== activeCat) sec.classList.add('hidden');
+        });
+      }
+      return;
+    }
+
+    // Show all sections during search
+    catBtns.forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-cat="all"]').classList.add('active');
+    sections.forEach(s => s.classList.remove('hidden'));
+
+    const terms = q.split(/\s+/);
+    let visible = 0;
+
+    allEntries.forEach(entry => {
+      const text = (
+        entry.textContent +
+        ' ' +
+        (entry.dataset.keywords || '')
+      ).toLowerCase();
+
+      const match = terms.every(t => text.includes(t));
+      entry.classList.toggle('hidden', !match);
+      if (match) visible++;
+    });
+
+    // Hide empty sections
+    sections.forEach(sec => {
+      const hasVisible = sec.querySelectorAll('.entry:not(.hidden)').length > 0;
+      sec.classList.toggle('hidden', !hasVisible);
+    });
+
+    searchStats.textContent = visible + ' of ' + allEntries.length + ' entries';
+    searchStats.classList.add('active');
+  });
+
+  // Copy buttons on pre blocks
+  document.querySelectorAll('pre').forEach(pre => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'COPY';
+    btn.addEventListener('click', () => {
+      // Get raw text, strip the lang label
+      let text = pre.textContent;
+      const label = pre.querySelector('.lang-label');
+      if (label) text = text.replace(label.textContent, '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'COPIED';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'COPY';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.style.position = 'relative';
+    pre.appendChild(btn);
+  });
+
+  // Keyboard shortcut: / to focus search
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+      searchInput.blur();
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+    }
+  });
+})();
+</script>
+</body>
+</html>
