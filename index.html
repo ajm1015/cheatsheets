@@ -5,344 +5,300 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Field Guides</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
   :root {
-    --bg: #0a0f0c;
-    --bg2: #0d1410;
-    --bg3: #111a15;
-    --border: #1a2e22;
-    --border-bright: #2a4a35;
-    --green: #3cffa8;
-    --green-dim: #1a7a4a;
-    --green-glow: rgba(60, 255, 168, 0.15);
-    --amber: #ffb84d;
-    --cyan: #5feaff;
-    --text: #c8e6d0;
-    --text-dim: #5a7a65;
-    --mono: 'SF Mono', 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Menlo', 'Consolas', monospace;
+    --bg: #b8ae9c;
+    --panel: #d8d2c6;
+    --panel-light: #e6e1d7;
+    --hi: #f0ece4;
+    --sh: #8a8070;
+    --sh-deep: #6e655a;
+    --purple: #5c4a8a;
+    --purple-bright: #7b61ff;
+    --purple-dim: #3e3260;
+    --gold: #d4952a;
+    --gold-light: #f0c060;
+    --green-term: #3cffa8;
+    --text: #1e1b18;
+    --text-dim: #6b6358;
+    --text-light: #f0ece4;
+    --mono: 'IBM Plex Mono', 'Courier New', 'Menlo', 'Consolas', monospace;
+    --sans: 'IBM Plex Sans', 'Lucida Grande', 'Geneva', 'Helvetica', sans-serif;
+    --bevel-out: inset -1px -1px 0 var(--sh), inset 1px 1px 0 var(--hi), inset -2px -2px 0 var(--sh-deep), inset 2px 2px 0 #f8f5f0;
+    --bevel-in: inset 1px 1px 0 var(--sh), inset -1px -1px 0 var(--hi), inset 2px 2px 0 var(--sh-deep), inset -2px -2px 0 #f8f5f0;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: var(--mono);
+    font-family: var(--sans);
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    padding: 24px;
+    background-image:
+      linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%),
+      linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%);
+    background-size: 4px 4px;
+    background-position: 0 0, 2px 2px;
   }
 
-  /* Scanline */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
-    pointer-events: none;
-    z-index: 9999;
+  .window {
+    width: 100%;
+    max-width: 640px;
+    border: 2px solid var(--sh-deep);
+    box-shadow: var(--bevel-out), 6px 6px 20px rgba(0,0,0,0.3);
+    background: var(--panel);
   }
 
-  /* CRT vignette */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%);
-    pointer-events: none;
-    z-index: 9998;
-  }
-
-  .terminal {
-    width: 90%;
-    max-width: 560px;
-    border: 1px solid var(--border-bright);
-    background: var(--bg2);
-    box-shadow: 0 0 60px rgba(60, 255, 168, 0.05), 0 0 120px rgba(0, 0, 0, 0.5);
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Title bar */
   .title-bar {
+    background: linear-gradient(180deg, #7a64b8 0%, var(--purple) 40%, var(--purple-dim) 100%);
+    padding: 6px 10px;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 14px;
-    background: var(--bg3);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--sh-deep);
+    user-select: none;
   }
 
   .dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+    width: 14px; height: 14px;
+    border: 1px solid rgba(0,0,0,0.4);
+    box-shadow: inset -1px -1px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.3);
   }
 
-  .dot-red { background: #ff5f56; }
-  .dot-yellow { background: #ffbd2e; }
-  .dot-green { background: #27c93f; }
+  .dot-r { background: #e05050; }
+  .dot-y { background: #d4952a; }
+  .dot-g { background: #50a850; }
 
-  .title-bar-text {
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    margin-left: 8px;
+  .title-text {
+    flex: 1; text-align: center;
+    font-size: 13px; font-weight: 700; color: var(--text-light);
+    letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
   }
 
-  /* Body */
-  .terminal-body {
-    padding: 28px 24px 32px;
+  .body {
+    padding: 24px;
+    background: var(--panel-light);
   }
 
-  .prompt-line {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
-
-  .prompt {
-    color: var(--green);
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  .prompt-path {
-    color: var(--cyan);
+  /* Embedded terminal */
+  .term {
+    background: #1a1a1e;
+    border: 2px solid var(--sh-deep);
+    box-shadow: var(--bevel-in);
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    font-family: var(--mono);
     font-size: 12px;
-    font-weight: 500;
+    line-height: 1.7;
+    color: #c0bca8;
   }
 
-  .prompt-cmd {
-    color: var(--text);
-    font-size: 12px;
-  }
-
-  .cursor {
-    display: inline-block;
-    width: 8px;
-    height: 14px;
-    background: var(--green);
-    margin-left: 2px;
+  .term .prompt { color: var(--gold-light); }
+  .term .path { color: #8ab4f8; }
+  .term .cmd { color: #e0dcc8; }
+  .term .out { color: #8a8678; }
+  .term .f-g { color: var(--green-term); }
+  .term .f-c { color: #5feaff; }
+  .term .f-p { color: var(--purple-bright); }
+  .term .cursor {
+    display: inline-block; width: 8px; height: 14px;
+    background: var(--gold-light);
     animation: blink 1.2s step-end infinite;
-    vertical-align: text-bottom;
+    vertical-align: text-bottom; margin-left: 2px;
   }
 
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-  .output {
-    margin-top: 20px;
-    font-size: 11px;
-    color: var(--text-dim);
-    line-height: 1.6;
-    letter-spacing: 0.3px;
-  }
+  .term .line { margin-bottom: 2px; }
 
-  .output-line {
-    margin-bottom: 2px;
+  .section-label {
+    font-size: 10px; font-weight: 700; color: var(--text-dim);
+    letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 10px; padding-bottom: 4px;
+    border-bottom: 1px solid var(--sh);
   }
 
   /* Cards */
-  .cards {
-    margin-top: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
+  .cards { display: flex; flex-direction: column; gap: 10px; }
 
   .card {
-    display: block;
-    text-decoration: none;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    padding: 16px 18px;
-    transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s;
+    display: block; text-decoration: none;
+    background: var(--panel);
+    border: 2px solid var(--sh);
+    box-shadow: var(--bevel-out);
+    padding: 14px 16px 14px 16px;
+    transition: box-shadow 0.2s, transform 0.15s;
     position: relative;
-    overflow: hidden;
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(60,255,168,0.03) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity 0.25s;
   }
 
   .card:hover {
-    border-color: var(--green-dim);
-    box-shadow: 0 0 24px rgba(60, 255, 168, 0.08);
+    box-shadow: var(--bevel-out), 0 0 0 2px var(--purple-bright);
     transform: translateY(-1px);
   }
 
-  .card:hover::before { opacity: 1; }
-
-  .card-icon {
-    font-size: 20px;
-    margin-bottom: 8px;
-    display: block;
-    position: relative;
-    z-index: 1;
+  .card:active {
+    box-shadow: var(--bevel-in);
+    transform: translateY(0);
   }
 
+  .card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+
+  .card-icon { font-size: 22px; line-height: 1; }
+
   .card-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--green);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-    position: relative;
-    z-index: 1;
+    font-size: 14px; font-weight: 700; color: var(--purple); letter-spacing: 0.3px;
+  }
+
+  .card-tag {
+    margin-left: auto;
+    font-family: var(--mono); font-size: 8px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    padding: 2px 6px; border: 1px solid; border-radius: 2px;
+  }
+
+  .tag-dark {
+    color: var(--green-term);
+    border-color: rgba(60,255,168,0.35);
+    background: rgba(10,15,12,0.8);
+  }
+
+  .tag-retro {
+    color: var(--purple-bright);
+    border-color: rgba(123,97,255,0.35);
+    background: rgba(123,97,255,0.08);
   }
 
   .card-desc {
-    font-size: 10px;
-    color: var(--text-dim);
-    line-height: 1.5;
-    letter-spacing: 0.3px;
-    position: relative;
-    z-index: 1;
+    font-size: 11px; color: var(--text-dim); line-height: 1.5; margin-bottom: 8px;
   }
 
   .card-meta {
-    display: flex;
-    gap: 12px;
-    margin-top: 10px;
-    position: relative;
-    z-index: 1;
+    display: flex; gap: 14px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px;
   }
 
-  .card-stat {
-    font-size: 9px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  .card-stat-value {
-    color: var(--green);
-    font-weight: 600;
-  }
-
-  .card-stat-label {
-    color: var(--text-dim);
-    margin-left: 4px;
-  }
+  .mv { color: var(--purple); font-weight: 600; }
+  .ml { color: var(--text-dim); }
 
   .card-arrow {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--border-bright);
-    font-size: 16px;
-    transition: color 0.25s, transform 0.25s;
-    z-index: 1;
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 18px; font-weight: 700; color: var(--sh);
+    transition: color 0.2s, transform 0.2s;
   }
 
   .card:hover .card-arrow {
-    color: var(--green);
-    transform: translateY(-50%) translateX(3px);
+    color: var(--purple); transform: translateY(-50%) translateX(3px);
   }
 
-  /* Footer */
   .footer {
-    margin-top: 28px;
-    text-align: center;
-    font-size: 9px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    opacity: 0.6;
+    background: var(--panel);
+    border-top: 2px solid var(--sh);
+    box-shadow: inset 0 1px 0 var(--hi);
+    padding: 10px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 9px; color: var(--text-dim); letter-spacing: 0.5px;
   }
 
-  /* Ambient grid bg */
-  .grid-bg {
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(60,255,168,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(60,255,168,0.02) 1px, transparent 1px);
-    background-size: 40px 40px;
-    z-index: 0;
+  .footer-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold); border: 1px solid rgba(0,0,0,0.2);
+    box-shadow: inset -1px -1px 0 rgba(0,0,0,0.2), inset 1px 1px 0 rgba(255,255,255,0.3);
+    display: inline-block; margin-right: 6px; vertical-align: middle;
+  }
+
+  @media (max-width: 500px) {
+    body { padding: 0; }
+    .window { max-width: 100%; border-left: none; border-right: none; }
+    .body { padding: 16px; }
+    .term { padding: 12px; font-size: 11px; }
   }
 </style>
 </head>
 <body>
 
-<div class="grid-bg"></div>
-
-<div class="terminal">
+<div class="window">
   <div class="title-bar">
-    <span class="dot dot-red"></span>
-    <span class="dot dot-yellow"></span>
-    <span class="dot dot-green"></span>
-    <span class="title-bar-text">field-guides — bash</span>
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="title-text">Field Guides</div>
+    <div class="dot dot-g"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-r"></div>
   </div>
 
-  <div class="terminal-body">
-    <div class="prompt-line">
-      <span class="prompt">❯</span>
-      <span class="prompt-path">~/cheatsheets</span>
-      <span class="prompt-cmd">ls -la</span>
+  <div class="body">
+    <div class="term">
+      <div class="line"><span class="prompt">❯</span> <span class="path">~/cheatsheets</span> <span class="cmd">ls -la</span></div>
+      <div class="line"><span class="out">drwxr-xr-x  4 user user  4096 Mar 30 14:00 .</span></div>
+      <div class="line"><span class="out">-rw-r--r--  1 user user  48K  Mar 30 14:00</span> <span class="f-g">windows-field-cheatsheet.html</span></div>
+      <div class="line"><span class="out">-rw-r--r--  1 user user  38K  Mar 18 21:30</span> <span class="f-c">macos-shortcuts.html</span></div>
+      <div class="line"><span class="out">-rw-r--r--  1 user user  52K  Mar 30 12:00</span> <span class="f-p">windows-shortcuts.html</span></div>
+      <div class="line" style="margin-top:8px"><span class="prompt">❯</span> <span class="path">~/cheatsheets</span> <span class="cmd">cat README</span></div>
+      <div class="line"><span class="out">Dense field reference for desktop engineering.</span></div>
+      <div class="line"><span class="out">No fluff. Copy-paste ready. Built for speed.</span></div>
+      <div class="line" style="margin-top:8px"><span class="prompt">❯</span> <span class="path">~/cheatsheets</span> <span class="cursor"></span></div>
     </div>
 
-    <div class="output">
-      <div class="output-line">drwxr-xr-x  2 user user  4096 Mar 28 12:00 .</div>
-      <div class="output-line">-rw-r--r--  1 user user  42K  Mar 28 12:00 windows-field-cheatsheet.html</div>
-      <div class="output-line">-rw-r--r--  1 user user  38K  Mar 18 21:30 macos-shortcuts.html</div>
-    </div>
-
-    <div class="prompt-line" style="margin-top: 16px;">
-      <span class="prompt">❯</span>
-      <span class="prompt-path">~/cheatsheets</span>
-      <span class="prompt-cmd">cat README</span>
-    </div>
-
-    <div class="output" style="margin-top: 8px;">
-      Dense field reference for desktop engineering.<br>
-      No fluff. Copy-paste ready. Built for speed.
-    </div>
+    <div class="section-label">Available Guides</div>
 
     <div class="cards">
       <a href="windows-field-cheatsheet.html" class="card">
-        <span class="card-icon">🪟</span>
-        <div class="card-title">Windows Field Cheatsheet</div>
-        <div class="card-desc">Intune/Autopilot deployment, Windows break-fix, M365/Exchange/Teams, PowerShell one-liners</div>
+        <div class="card-top">
+          <span class="card-icon">🪟</span>
+          <span class="card-title">Windows Field Cheatsheet</span>
+          <span class="card-tag tag-dark">TERMINAL</span>
+        </div>
+        <div class="card-desc">Intune/Autopilot deployment, Windows break-fix, M365/Exchange/Teams troubleshooting, PowerShell one-liners</div>
         <div class="card-meta">
-          <span class="card-stat"><span class="card-stat-value">33</span><span class="card-stat-label">entries</span></span>
-          <span class="card-stat"><span class="card-stat-value">5</span><span class="card-stat-label">sections</span></span>
+          <span><span class="mv">33</span> <span class="ml">entries</span></span>
+          <span><span class="mv">5</span> <span class="ml">sections</span></span>
+          <span><span class="ml">style:</span> <span class="mv">hacker dark</span></span>
         </div>
         <span class="card-arrow">→</span>
       </a>
 
       <a href="macos-shortcuts.html" class="card">
-        <span class="card-icon">🍎</span>
-        <div class="card-title">macOS Shortcut Cheatsheet</div>
-        <div class="card-desc">System, Finder, editing, terminal, Safari, Cursor/VSCode, accessibility, and more</div>
+        <div class="card-top">
+          <span class="card-icon">🍎</span>
+          <span class="card-title">macOS Shortcut Cheatsheet</span>
+          <span class="card-tag tag-dark">TERMINAL</span>
+        </div>
+        <div class="card-desc">System, Finder, editing, terminal, Safari, Cursor/VSCode, accessibility, text formatting, and more</div>
         <div class="card-meta">
-          <span class="card-stat"><span class="card-stat-value">210+</span><span class="card-stat-label">shortcuts</span></span>
-          <span class="card-stat"><span class="card-stat-value">20</span><span class="card-stat-label">categories</span></span>
+          <span><span class="mv">210+</span> <span class="ml">shortcuts</span></span>
+          <span><span class="mv">20</span> <span class="ml">categories</span></span>
+          <span><span class="ml">style:</span> <span class="mv">hacker dark</span></span>
+        </div>
+        <span class="card-arrow">→</span>
+      </a>
+
+      <a href="windows-shortcuts.html" class="card">
+        <div class="card-top">
+          <span class="card-icon">⌨️</span>
+          <span class="card-title">Windows Shortcut Cheatsheet</span>
+          <span class="card-tag tag-retro">WORKSTATION</span>
+        </div>
+        <div class="card-desc">System, Explorer, virtual desktops, snap layouts, accessibility, PowerShell/Terminal, Notepad, Edge</div>
+        <div class="card-meta">
+          <span><span class="mv">285</span> <span class="ml">shortcuts</span></span>
+          <span><span class="mv">7</span> <span class="ml">categories</span></span>
+          <span><span class="ml">style:</span> <span class="mv">SUN / NeXTSTEP</span></span>
         </div>
         <span class="card-arrow">→</span>
       </a>
     </div>
+  </div>
 
-    <div class="prompt-line" style="margin-top: 24px;">
-      <span class="prompt">❯</span>
-      <span class="prompt-path">~/cheatsheets</span>
-      <span class="cursor"></span>
-    </div>
-
-    <div class="footer">FIELD GUIDES · 2026</div>
+  <div class="footer">
+    <span><span class="footer-dot"></span>FIELD GUIDES · 2026</span>
+    <span>3 REFERENCES AVAILABLE</span>
   </div>
 </div>
 
