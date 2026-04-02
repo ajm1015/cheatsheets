@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>macOS Field Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #b8ae9c;
+    --bg-warm: #c5bdb0;
+    --panel: #d8d2c6;
+    --panel-light: #e6e1d7;
+    --panel-dark: #a89e8e;
+    --highlight: #f0ece4;
+    --shadow: #8a8070;
+    --shadow-deep: #6e655a;
+    --purple: #5c4a8a;
+    --purple-bright: #7b61ff;
+    --purple-light: #9b88cc;
+    --purple-dim: #3e3260;
+    --gold: #d4952a;
+    --gold-light: #f0c060;
+    --red: #c04040;
+    --cyan: #2a8a8a;
+    --text: #1e1b18;
+    --text-dim: #6b6358;
+    --text-light: #f0ece4;
+    --mono: 'IBM Plex Mono', 'Courier New', 'Menlo', 'Consolas', monospace;
+    --sans: 'IBM Plex Sans', 'Lucida Grande', 'Geneva', 'Helvetica', sans-serif;
+    --bevel-out: inset -1px -1px 0 var(--shadow), inset 1px 1px 0 var(--highlight), inset -2px -2px 0 var(--shadow-deep), inset 2px 2px 0 #f8f5f0;
+    --bevel-in: inset 1px 1px 0 var(--shadow), inset -1px -1px 0 var(--highlight), inset 2px 2px 0 var(--shadow-deep), inset -2px -2px 0 #f8f5f0;
+    --bevel-out-sm: inset -1px -1px 0 var(--shadow), inset 1px 1px 0 var(--highlight);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    background-image:
+      linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%),
+      linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%);
+    background-size: 4px 4px;
+    background-position: 0 0, 2px 2px;
+  }
+
+  .window {
+    max-width: 1100px;
+    margin: 24px auto;
+    border: 2px solid var(--shadow-deep);
+    box-shadow: var(--bevel-out), 4px 4px 12px rgba(0,0,0,0.25);
+    background: var(--panel);
+  }
+
+  .title-bar {
+    background: linear-gradient(180deg, #7a64b8 0%, var(--purple) 40%, var(--purple-dim) 100%);
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 2px solid var(--shadow-deep);
+    user-select: none;
+  }
+
+  .title-btn {
+    width: 14px;
+    height: 14px;
+    border: 1px solid rgba(0,0,0,0.4);
+    box-shadow: inset -1px -1px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.3);
+  }
+
+  .btn-close { background: #e05050; }
+  .btn-min { background: #d4952a; }
+  .btn-max { background: #50a850; }
+
+  .title-text {
+    flex: 1;
+    text-align: center;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-light);
+    letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 20px 24px 16px;
+    background: var(--panel-light);
+    border-bottom: 2px solid var(--shadow);
+    box-shadow: inset 0 -1px 0 var(--highlight);
+  }
+
+  .header h1 {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--purple);
+    letter-spacing: 0.5px;
+  }
+
+  .header .subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    font-family: var(--mono);
+    letter-spacing: 0.3px;
+  }
+
+  .header .meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .meta-val { color: var(--purple); font-weight: 600; }
+  .meta-label { color: var(--text-dim); }
+
+  /* ── Search ── */
+  .search-wrap {
+    padding: 10px 24px;
+    background: var(--panel);
+    border-bottom: 2px solid var(--shadow);
+    box-shadow: inset 0 -1px 0 var(--highlight);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .search-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .search-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .search-box {
+    flex: 1;
+    background: #fff;
+    border: none;
+    box-shadow: var(--bevel-in);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 7px 10px;
+    outline: none;
+  }
+
+  .search-box::placeholder { color: #a09888; }
+  .search-box:focus { box-shadow: var(--bevel-in), 0 0 0 2px rgba(123,97,255,0.3); }
+
+  .search-stats {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    display: none;
+  }
+
+  .search-stats.active { display: block; }
+
+  /* ── Category nav ── */
+  .cat-nav {
+    display: flex;
+    gap: 2px;
+    padding: 8px 24px;
+    background: var(--panel);
+    border-bottom: 2px solid var(--shadow);
+    box-shadow: inset 0 -1px 0 var(--highlight);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .cat-nav::-webkit-scrollbar { display: none; }
+
+  .cat-btn {
+    background: var(--panel-light);
+    border: none;
+    box-shadow: var(--bevel-out-sm);
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .cat-btn:hover {
+    background: var(--highlight);
+    color: var(--text);
+  }
+
+  .cat-btn:active, .cat-btn.active {
+    box-shadow: var(--bevel-in);
+    background: var(--bg-warm);
+    color: var(--purple);
+    font-weight: 700;
+  }
+
+  /* ── Content ── */
+  .content { padding: 16px 24px 40px; }
+
+  /* ── Section ── */
+  .section { margin-top: 24px; }
+
+  .section-bar {
+    background: linear-gradient(180deg, #7a64b8 0%, var(--purple) 50%, var(--purple-dim) 100%);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 2px solid var(--shadow-deep);
+    box-shadow: var(--bevel-out-sm);
+    margin-bottom: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-bar:hover { filter: brightness(1.05); }
+
+  .section-icon { font-size: 16px; }
+
+  .section-title {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-light);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+
+  .section-count {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .section-toggle {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    transition: transform 0.2s;
+  }
+
+  .section.collapsed .section-toggle { transform: rotate(-90deg); }
+  .section.collapsed .entry-list { display: none; }
+
+  /* ── Entry rows ── */
+  .entry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .entry-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--panel-light);
+    border: 1px solid var(--shadow);
+    box-shadow: inset -1px -1px 0 var(--shadow), inset 1px 1px 0 var(--highlight);
+    transition: background 0.15s;
+    min-height: 44px;
+  }
+
+  .entry-row:hover { background: #eee8dc; }
+
+  .entry-cmd-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+    max-width: 55%;
+  }
+
+  .entry-cmd {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--purple-dim);
+    background: linear-gradient(180deg, #f0ece4 0%, #d4d0c6 40%, #c8c0b4 100%);
+    border: 1px solid var(--shadow);
+    box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 var(--shadow-deep), 0 1px 2px rgba(0,0,0,0.2);
+    border-radius: 3px;
+    padding: 3px 8px;
+    word-break: break-all;
+    white-space: pre-wrap;
+    line-height: 1.4;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .copy-btn {
+    background: var(--panel);
+    border: 1px solid var(--shadow);
+    box-shadow: var(--bevel-out-sm);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 3px 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-height: 24px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .copy-btn:hover { background: var(--highlight); color: var(--purple); }
+  .copy-btn:active { box-shadow: var(--bevel-in); }
+  .copy-btn.copied { color: var(--gold); }
+
+  .entry-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .entry-desc {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .entry-notes {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.4;
+    margin-top: 2px;
+  }
+
+  .entry-tags {
+    display: flex;
+    gap: 4px;
+    margin-top: 3px;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border: 1px solid;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .tag-sudo { color: var(--red); border-color: rgba(192,64,64,0.4); background: rgba(192,64,64,0.08); }
+  .tag-kandji { color: var(--purple-bright); border-color: rgba(123,97,255,0.4); background: rgba(123,97,255,0.08); }
+  .tag-default { color: var(--cyan); border-color: rgba(42,138,138,0.4); background: rgba(42,138,138,0.08); }
+
+  /* ── Footer ── */
+  .footer {
+    background: var(--panel-light);
+    border-top: 2px solid var(--shadow);
+    box-shadow: inset 0 1px 0 var(--highlight);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+
+  mark {
+    background: rgba(123, 97, 255, 0.2);
+    color: var(--purple-dim);
+    padding: 0 2px;
+    border-radius: 1px;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ── Reference table ── */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  .ref-table th {
+    background: var(--panel-dark);
+    color: var(--text);
+    font-weight: 700;
+    text-align: left;
+    padding: 4px 8px;
+    border: 1px solid var(--shadow);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .ref-table td {
+    padding: 4px 8px;
+    border: 1px solid var(--shadow);
+    background: var(--panel-light);
+    color: var(--text);
+  }
+
+  .ref-table tr:hover td { background: #eee8dc; }
+
+  @media (max-width: 700px) {
+    .window { margin: 0; border-left: none; border-right: none; }
+    .header, .content, .search-wrap, .cat-nav, .footer { padding-left: 12px; padding-right: 12px; }
+    .entry-row { flex-direction: column; gap: 6px; }
+    .entry-cmd-wrap { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="window" id="app">
+  <div class="title-bar">
+    <div class="title-btn btn-close"></div>
+    <div class="title-btn btn-min"></div>
+    <div class="title-btn btn-max"></div>
+    <div class="title-text">macOS Field Guide</div>
+    <div class="title-btn btn-max"></div>
+    <div class="title-btn btn-min"></div>
+    <div class="title-btn btn-close"></div>
+  </div>
+
+  <div class="header">
+    <h1>macOS Administration Field Guide</h1>
+    <div class="subtitle">macOS 13+ (Ventura → Sequoia) · Kandji / Entra ID / ABM · Endpoint Engineering</div>
+    <div class="meta">
+      <span><span class="meta-val" id="total-count">0</span> <span class="meta-label">commands</span></span>
+      <span><span class="meta-val" id="cat-count">0</span> <span class="meta-label">categories</span></span>
+      <span><span class="meta-label">updated</span> <span class="meta-val">2026-04-02</span></span>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <div class="search-inner">
+      <span class="search-label">Find:</span>
+      <input type="text" class="search-box" id="search" placeholder="Search commands, descriptions, notes, tags..." autocomplete="off" spellcheck="false">
+    </div>
+    <div class="search-stats" id="search-stats"></div>
+  </div>
+
+  <nav class="cat-nav" id="cat-nav"></nav>
+
+  <div class="content" id="content"></div>
+
+  <div class="footer">
+    <span>MACOS FIELD GUIDE · 2026</span>
+    <span>PRESS / TO SEARCH · ESC TO CLEAR</span>
+  </div>
+</div>
+
+<script>
+const CATEGORY_META = [
+  { id: "kandji",    icon: "📱", label: "Kandji / MDM" },
+  { id: "disk",      icon: "💾", label: "Disk & Storage" },
+  { id: "network",   icon: "🌐", label: "Network" },
+  { id: "sysinfo",   icon: "🖥", label: "System Info" },
+  { id: "user",      icon: "👤", label: "User & Identity" },
+  { id: "logs",      icon: "📋", label: "Logs & Diagnostics" },
+  { id: "launch",    icon: "⚙", label: "Launch & Services" },
+  { id: "security",  icon: "🔒", label: "Security" },
+  { id: "software",  icon: "📦", label: "Software" },
+  { id: "reference", icon: "📖", label: "Reference Tables" },
+];
+
+const ENTRIES = [
+  // ── KANDJI / MDM ──
+  { category: "kandji", cmd: "sudo profiles list -verbose", desc: "List all installed configuration profiles with full detail", notes: "Requires root. Shows MDM, Wi-Fi, VPN, certificate profiles", tags: ["mdm", "profiles"] },
+  { category: "kandji", cmd: "sudo profiles show -type enrollment", desc: "Show MDM enrollment profile details", notes: "Confirms DEP/ADE vs manual enrollment", tags: ["mdm", "enrollment"] },
+  { category: "kandji", cmd: "sudo profiles remove -identifier {profile-id}", desc: "Remove a specific configuration profile by identifier", notes: "Post-macOS 12: MDM-installed profiles require a removal token", tags: ["mdm", "profiles"] },
+  { category: "kandji", cmd: "sudo profiles renew -type enrollment", desc: "Renew the MDM enrollment profile", notes: "Useful when enrollment is stale or certificate is expiring", tags: ["mdm", "enrollment"] },
+  { category: "kandji", cmd: "log show --predicate 'subsystem == \"com.apple.ManagedClient\"' --last 1h", desc: "Show MDM client logs from the last hour", notes: "Filter by subsystem for cleaner output. Adjust time window as needed", tags: ["mdm", "logs"] },
+  { category: "kandji", cmd: "log show --predicate 'process == \"mdmclient\"' --last 30m --info", desc: "Show mdmclient process logs including info-level messages", notes: "Catches check-in events, profile installs, command responses", tags: ["mdm", "logs"] },
+  { category: "kandji", cmd: "sudo /usr/libexec/mdmclient QueryDeviceInformation", desc: "Query device info as reported to MDM server", notes: "Returns serial, UDID, OS version, battery, storage", tags: ["mdm", "diagnostics"] },
+  { category: "kandji", cmd: "sudo /usr/libexec/mdmclient QuerySecurityInfo", desc: "Query security posture reported to MDM", notes: "Shows FileVault status, firewall, SIP, firmware password state", tags: ["mdm", "security"] },
+  { category: "kandji", cmd: "ls -la /var/kandji/", desc: "List Kandji agent directory contents", notes: "Contains agent binary, logs, cache. Verify agent is installed", tags: ["kandji", "agent"] },
+  { category: "kandji", cmd: "cat /var/kandji/log/agent.log | tail -100", desc: "Tail the Kandji agent log", notes: "Check for audit/remediation runs, parameter execution, errors", tags: ["kandji", "logs"] },
+  { category: "kandji", cmd: "sudo launchctl list | grep kandji", desc: "Check if Kandji launch daemons are loaded", notes: "Should show io.kandji.KandjiAgent and related services", tags: ["kandji", "agent"] },
+  { category: "kandji", cmd: "defaults read /Library/Preferences/com.apple.mdmclient", desc: "Read MDM client preferences", notes: "Shows server URL, check-in interval, last check-in time", tags: ["mdm", "preferences"] },
+
+  // ── DISK & STORAGE ──
+  { category: "disk", cmd: "diskutil list", desc: "List all disks, partitions, and APFS volumes", notes: "Shows synthesized (APFS container) and physical disk layout", tags: ["disk", "apfs"] },
+  { category: "disk", cmd: "diskutil info /", desc: "Show detailed info for the boot volume", notes: "Includes filesystem type, UUID, capacity, encryption status", tags: ["disk", "info"] },
+  { category: "disk", cmd: "diskutil apfs list", desc: "List APFS containers and their volumes", notes: "Shows roles (System, Data, Preboot, Recovery, VM)", tags: ["disk", "apfs"] },
+  { category: "disk", cmd: "diskutil verifyVolume /", desc: "Run First Aid verification on the boot volume", notes: "Non-destructive check. Use repairVolume for fixes (requires recovery for boot vol)", tags: ["disk", "repair"] },
+  { category: "disk", cmd: "sudo diskutil repairVolume /", desc: "Repair filesystem on the boot volume", notes: "May require booting to Recovery for the system volume", tags: ["disk", "repair"] },
+  { category: "disk", cmd: "tmutil listlocalsnapshots /", desc: "List local Time Machine APFS snapshots", notes: "Snapshots consume space; delete stale ones with thinlocalsnapshots", tags: ["disk", "timemachine"] },
+  { category: "disk", cmd: "sudo tmutil thinlocalsnapshots / 10000000000 4", desc: "Purge local snapshots to reclaim ~10GB", notes: "Second arg is bytes to free, third is urgency (1-4, 4=most aggressive)", tags: ["disk", "timemachine"] },
+  { category: "disk", cmd: "df -h", desc: "Show filesystem disk space usage in human-readable format", notes: "Check /System/Volumes/Data for actual user data volume", tags: ["disk", "usage"] },
+  { category: "disk", cmd: "du -sh ~/Library/Caches/*", desc: "Show cache directory sizes", notes: "Common culprit for disk space issues. Safe to clear most app caches", tags: ["disk", "usage"] },
+  { category: "disk", cmd: "diskutil mount /dev/disk2s1", desc: "Mount a specific volume by disk identifier", notes: "Get identifier from diskutil list. Use unmount to eject", tags: ["disk", "mount"] },
+  { category: "disk", cmd: "sudo diskutil apfs addVolume disk1 APFS NewVolume", desc: "Add a new APFS volume to container disk1", notes: "Shares space dynamically with other volumes in the container", tags: ["disk", "apfs"] },
+  { category: "disk", cmd: "smartctl -a /dev/disk0", desc: "Show SMART health data for physical disk", notes: "Requires smartmontools (brew install smartmontools). Use system_profiler for basic health", tags: ["disk", "health"] },
+
+  // ── NETWORK ──
+  { category: "network", cmd: "networksetup -listallhardwareports", desc: "List all network interfaces with hardware details", notes: "Shows device name, MAC address, and hardware port for each interface", tags: ["network", "interfaces"] },
+  { category: "network", cmd: "networksetup -getinfo Wi-Fi", desc: "Show IP, subnet, router, and DNS for Wi-Fi interface", notes: "Replace Wi-Fi with Ethernet or other service name as needed", tags: ["network", "ip"] },
+  { category: "network", cmd: "networksetup -setdnsservers Wi-Fi 8.8.8.8 8.8.4.4", desc: "Set DNS servers for Wi-Fi interface", notes: "Use \"Empty\" as value to revert to DHCP-assigned DNS", tags: ["network", "dns"] },
+  { category: "network", cmd: "sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder", desc: "Flush DNS cache", notes: "Both commands needed on macOS 13+. Fixes stale DNS resolutions", tags: ["network", "dns"] },
+  { category: "network", cmd: "scutil --dns", desc: "Show DNS configuration from all sources", notes: "Shows resolver configs, search domains, and which interface provides DNS", tags: ["network", "dns"] },
+  { category: "network", cmd: "scutil --proxy", desc: "Show system proxy configuration", notes: "Displays PAC URL, HTTP/HTTPS proxy, exceptions list", tags: ["network", "proxy"] },
+  { category: "network", cmd: "ifconfig en0", desc: "Show network configuration for en0 (typically Wi-Fi)", notes: "en0 is usually Wi-Fi on laptops, en0 is Ethernet on desktops", tags: ["network", "interfaces"] },
+  { category: "network", cmd: "ipconfig getifaddr en0", desc: "Get just the IPv4 address for en0", notes: "Quick way to grab IP without parsing ifconfig output", tags: ["network", "ip"] },
+  { category: "network", cmd: "sudo /System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -s", desc: "Scan for nearby Wi-Fi networks", notes: "Shows SSID, BSSID, RSSI, channel, security type. Requires sudo on Sonoma+", tags: ["network", "wifi"] },
+  { category: "network", cmd: "networksetup -getairportnetwork en0", desc: "Show currently connected Wi-Fi network SSID", notes: "Quick check without needing the airport binary", tags: ["network", "wifi"] },
+  { category: "network", cmd: "sudo /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate", desc: "Check macOS application firewall status", notes: "Returns enabled/disabled. Use --setglobalstate on/off to toggle", tags: ["network", "firewall"] },
+  { category: "network", cmd: "sudo tcpdump -i en0 -n -c 50", desc: "Capture 50 packets on en0", notes: "Add host {ip} or port {port} to filter. -w file.pcap to save", tags: ["network", "capture"] },
+  { category: "network", cmd: "scutil --nc list", desc: "List all VPN configurations", notes: "Shows VPN connection name, type (IPSec, IKEv2), and status", tags: ["network", "vpn"] },
+
+  // ── SYSTEM INFO ──
+  { category: "sysinfo", cmd: "system_profiler SPHardwareDataType", desc: "Show hardware overview (model, chip, memory, serial)", notes: "Fastest way to get serial number and model identifier", tags: ["system", "hardware"] },
+  { category: "sysinfo", cmd: "system_profiler SPSoftwareDataType", desc: "Show OS version, kernel version, boot volume, uptime", notes: "Includes computer name and username", tags: ["system", "software"] },
+  { category: "sysinfo", cmd: "sw_vers", desc: "Show macOS product name, version, and build number", notes: "Quick version check: sw_vers -productVersion returns just 14.x", tags: ["system", "version"] },
+  { category: "sysinfo", cmd: "sysctl hw.model", desc: "Get hardware model identifier", notes: "Returns e.g. Mac14,2 for MacBook Air M2. Useful for compatibility checks", tags: ["system", "hardware"] },
+  { category: "sysinfo", cmd: "sysctl -n machdep.cpu.brand_string", desc: "Get CPU brand string", notes: "Shows \"Apple M2\" or Intel chip name", tags: ["system", "hardware"] },
+  { category: "sysinfo", cmd: "system_profiler SPMemoryDataType", desc: "Show memory details (size, type, speed per slot)", notes: "On Apple Silicon shows unified memory. On Intel shows DIMM slots", tags: ["system", "memory"] },
+  { category: "sysinfo", cmd: "system_profiler SPStorageDataType", desc: "Show storage volumes with capacity, available space, filesystem", notes: "Quick storage overview without diskutil", tags: ["system", "storage"] },
+  { category: "sysinfo", cmd: "system_profiler SPDisplaysDataType", desc: "Show display info (resolution, GPU, VRAM)", notes: "Includes connected external displays", tags: ["system", "display"] },
+  { category: "sysinfo", cmd: "ioreg -l | grep IOPlatformSerialNumber", desc: "Get device serial number via IO registry", notes: "Alternative to system_profiler. Pipe to awk for just the value", tags: ["system", "serial"] },
+  { category: "sysinfo", cmd: "uptime", desc: "Show system uptime, load averages, and user count", notes: "High load average can indicate runaway processes", tags: ["system", "uptime"] },
+  { category: "sysinfo", cmd: "uname -a", desc: "Show kernel version and architecture", notes: "arm64 = Apple Silicon, x86_64 = Intel (or Rosetta)", tags: ["system", "kernel"] },
+  { category: "sysinfo", cmd: "system_profiler SPPowerDataType", desc: "Show battery health, cycle count, and charge info", notes: "Key fields: Maximum Capacity, Cycle Count, Condition", tags: ["system", "battery"] },
+
+  // ── USER & IDENTITY ──
+  { category: "user", cmd: "dscl . -list /Users | grep -v '^_'", desc: "List all non-system local user accounts", notes: "System accounts start with underscore. Pipe to wc -l for count", tags: ["user", "directory"] },
+  { category: "user", cmd: "dscl . -read /Users/{username}", desc: "Read all attributes for a local user account", notes: "Shows UID, GID, shell, home dir, real name, groups", tags: ["user", "directory"] },
+  { category: "user", cmd: "sudo sysadminctl -secureTokenStatus {username}", desc: "Check Secure Token status for a user", notes: "Secure Token required for FileVault and volume ownership on APFS", tags: ["user", "securetoken"] },
+  { category: "user", cmd: "sudo sysadminctl -addUser {username} -fullName \"Full Name\" -password -admin", desc: "Create a new admin user account", notes: "Omit -admin for standard user. -password prompts interactively", tags: ["user", "create"] },
+  { category: "user", cmd: "sudo fdesetup list", desc: "List users enabled for FileVault", notes: "Shows username and UUID. Users need Secure Token first", tags: ["user", "filevault"] },
+  { category: "user", cmd: "sudo fdesetup add -usertoadd {username}", desc: "Add a user to FileVault unlock", notes: "Requires an existing FileVault-enabled admin to authenticate", tags: ["user", "filevault"] },
+  { category: "user", cmd: "security find-generic-password -s 'com.apple.account.SSO' -l 'SSO' ~/Library/Keychains/login.keychain-db", desc: "Check for SSO/Entra ID tokens in keychain", notes: "Presence indicates Platform SSO or Entra registration. May vary by IdP config", tags: ["user", "entra", "sso"] },
+  { category: "user", cmd: "app-sso platform -s", desc: "Show Platform SSO registration status", notes: "macOS 13+. Shows IdP, registration state, SSO tokens. Requires Company Portal or Entra broker", tags: ["user", "entra", "sso"] },
+  { category: "user", cmd: "dscl . -read /Groups/admin GroupMembership", desc: "List members of the local admin group", notes: "Verify who has admin rights on this machine", tags: ["user", "groups"] },
+  { category: "user", cmd: "sudo defaults read /Library/Preferences/com.apple.loginwindow", desc: "Read login window configuration", notes: "Shows auto-login user, login prompt style, power controls visibility", tags: ["user", "loginwindow"] },
+
+  // ── LOGS & DIAGNOSTICS ──
+  { category: "logs", cmd: "log show --last 15m --predicate 'eventMessage contains \"error\"' --info", desc: "Show all log entries containing \"error\" from last 15 minutes", notes: "Case-sensitive by default. Use [c] modifier for case-insensitive", tags: ["logs", "errors"] },
+  { category: "logs", cmd: "log stream --predicate 'subsystem == \"com.apple.loginwindow\"'", desc: "Live-stream login window events", notes: "Ctrl+C to stop. Great for debugging login/unlock issues", tags: ["logs", "stream"] },
+  { category: "logs", cmd: "log show --predicate 'process == \"kernel\"' --last 1h", desc: "Show kernel messages from the last hour", notes: "Catches panics, USB events, driver issues, memory pressure", tags: ["logs", "kernel"] },
+  { category: "logs", cmd: "log show --predicate 'subsystem == \"com.apple.securityd\"' --last 30m", desc: "Show security daemon logs", notes: "Covers keychain, code signing, authorization events", tags: ["logs", "security"] },
+  { category: "logs", cmd: "ls -lt ~/Library/Logs/DiagnosticReports/ | head -20", desc: "List recent crash reports sorted by date", notes: ".ips files are JSON crash logs. .crash are legacy format", tags: ["logs", "crashes"] },
+  { category: "logs", cmd: "cat /var/log/install.log | tail -50", desc: "View recent installer log entries", notes: "Tracks pkg installs, OS updates, MDM-pushed installs", tags: ["logs", "install"] },
+  { category: "logs", cmd: "sudo sysdiagnose -f ~/Desktop/", desc: "Capture full system diagnostic bundle", notes: "Takes 5-10 min. Creates .tar.gz with logs, profiles, system state. ~200-500MB", tags: ["logs", "diagnostics"] },
+  { category: "logs", cmd: "sudo spindump -reveal", desc: "Capture a spindump and open in Finder", notes: "3-second sample of all processes. Diagnoses hangs and high CPU", tags: ["logs", "performance"] },
+  { category: "logs", cmd: "sudo sample {PID} 5 -file ~/Desktop/sample.txt", desc: "Sample a specific process for 5 seconds", notes: "Replace {PID} with process ID from Activity Monitor or ps", tags: ["logs", "performance"] },
+  { category: "logs", cmd: "log show --predicate 'subsystem == \"com.apple.windowserver\"' --last 10m", desc: "Show WindowServer logs", notes: "Debug display issues, GPU hangs, rendering problems", tags: ["logs", "display"] },
+
+  // ── LAUNCH & SERVICES ──
+  { category: "launch", cmd: "sudo launchctl list", desc: "List all loaded system launch daemons and their status", notes: "PID column: - means not running, number means running. Status 0 = OK", tags: ["services", "launchctl"] },
+  { category: "launch", cmd: "launchctl list", desc: "List all loaded user launch agents", notes: "Run without sudo for current user agents", tags: ["services", "launchctl"] },
+  { category: "launch", cmd: "sudo launchctl kickstart -k system/com.apple.ftp-proxy", desc: "Force-restart a system service", notes: "-k kills existing process first. Use for restarting stuck daemons", tags: ["services", "restart"] },
+  { category: "launch", cmd: "sudo launchctl bootout system/{service-label}", desc: "Unload a system launch daemon", notes: "macOS 10.11+ replacement for launchctl unload. Service stops immediately", tags: ["services", "launchctl"] },
+  { category: "launch", cmd: "sudo launchctl bootstrap system /Library/LaunchDaemons/{plist}", desc: "Load a system launch daemon from plist", notes: "macOS 10.11+ replacement for launchctl load", tags: ["services", "launchctl"] },
+  { category: "launch", cmd: "ls /Library/LaunchDaemons/", desc: "List third-party system-wide launch daemons", notes: "MDM agents, security tools, and management software live here", tags: ["services", "paths"] },
+  { category: "launch", cmd: "ls ~/Library/LaunchAgents/", desc: "List per-user launch agents", notes: "User-level background processes, auto-start apps", tags: ["services", "paths"] },
+  { category: "launch", cmd: "sudo killall Finder", desc: "Restart Finder", notes: "Finder relaunches automatically. Fixes stuck Finder UI", tags: ["services", "restart"] },
+  { category: "launch", cmd: "sudo killall -HUP WindowServer", desc: "Restart WindowServer (logs out all users)", notes: "Nuclear option for display/UI issues. Kills all GUI sessions", tags: ["services", "restart"] },
+  { category: "launch", cmd: "ps aux | grep -i {process}", desc: "Find a process by name", notes: "Shows PID, CPU, MEM usage. Use kill {PID} to terminate", tags: ["services", "process"] },
+  { category: "launch", cmd: "lsof -i :8080", desc: "Show which process is listening on port 8080", notes: "Replace 8080 with any port. Useful for resolving port conflicts", tags: ["services", "process"] },
+  { category: "launch", cmd: "defaults write com.apple.dock autohide -bool true && killall Dock", desc: "Enable Dock auto-hide via defaults", notes: "defaults reads/writes app preference plists. killall restarts the process", tags: ["services", "defaults"] },
+
+  // ── SECURITY ──
+  { category: "security", cmd: "csrutil status", desc: "Check System Integrity Protection (SIP) status", notes: "Should be enabled on managed machines. Disable only from Recovery", tags: ["security", "sip"] },
+  { category: "security", cmd: "spctl --status", desc: "Check Gatekeeper status", notes: "assessments enabled = Gatekeeper active. --master-disable turns off (not recommended)", tags: ["security", "gatekeeper"] },
+  { category: "security", cmd: "spctl -a -t exec -vv /Applications/{App}.app", desc: "Verify Gatekeeper assessment for a specific app", notes: "Shows if app is signed, notarized, and from identified developer", tags: ["security", "gatekeeper"] },
+  { category: "security", cmd: "sudo fdesetup status", desc: "Check FileVault encryption status", notes: "Returns On/Off and whether encryption/decryption is in progress", tags: ["security", "filevault"] },
+  { category: "security", cmd: "sudo fdesetup enable", desc: "Enable FileVault disk encryption", notes: "Returns recovery key. Ensure you escrow this to MDM or secure storage", tags: ["security", "filevault"] },
+  { category: "security", cmd: "codesign -dv --verbose=4 /Applications/{App}.app", desc: "Show detailed code signing info for an app", notes: "Displays Team ID, signing authority chain, entitlements hash", tags: ["security", "codesign"] },
+  { category: "security", cmd: "codesign --verify --deep --strict /Applications/{App}.app", desc: "Verify code signature integrity of an app", notes: "Checks all nested code and resources. Exit 0 = valid", tags: ["security", "codesign"] },
+  { category: "security", cmd: "sudo sqlite3 '/Library/Application Support/com.apple.TCC/TCC.db' 'SELECT client,service,auth_value FROM access'", desc: "Dump TCC privacy database (Full Disk Access required)", notes: "Shows which apps have camera, microphone, screen recording, etc. permissions", tags: ["security", "tcc", "privacy"] },
+  { category: "security", cmd: "tccutil reset All", desc: "Reset all TCC privacy permissions", notes: "Use specific service name (Camera, Microphone, etc.) to reset selectively", tags: ["security", "tcc", "privacy"] },
+  { category: "security", cmd: "sudo firmwarepasswd -check", desc: "Check if firmware password is set (Intel Macs)", notes: "Apple Silicon uses Activation Lock instead. Returns Yes/No", tags: ["security", "firmware"] },
+  { category: "security", cmd: "sudo profiles status -type enrollment", desc: "Show DEP/ADE enrollment status and MDM removability", notes: "Confirms if device is supervised and if MDM profile is non-removable", tags: ["security", "mdm"] },
+
+  // ── SOFTWARE ──
+  { category: "software", cmd: "softwareupdate --list", desc: "List available macOS and system software updates", notes: "Add --all to include non-recommended updates", tags: ["software", "updates"] },
+  { category: "software", cmd: "sudo softwareupdate --install --all", desc: "Install all available updates", notes: "Add --restart to auto-reboot if needed. --agree-to-license skips prompt", tags: ["software", "updates"] },
+  { category: "software", cmd: "sudo installer -pkg /path/to/package.pkg -target /", desc: "Install a .pkg file from command line", notes: "Target / installs to boot volume. -verbose for detailed output", tags: ["software", "install"] },
+  { category: "software", cmd: "pkgutil --pkgs", desc: "List all installed package receipts", notes: "Pipe to grep to find specific packages. Shows bundle identifiers", tags: ["software", "packages"] },
+  { category: "software", cmd: "pkgutil --pkg-info {bundle-id}", desc: "Show details of a specific installed package", notes: "Shows version, install time, volume, install location", tags: ["software", "packages"] },
+  { category: "software", cmd: "pkgutil --files {bundle-id}", desc: "List all files installed by a package", notes: "Useful for finding where a pkg dropped its files", tags: ["software", "packages"] },
+  { category: "software", cmd: "mdfind 'kMDItemKind == \"Application\"' | head -50", desc: "Find installed applications using Spotlight", notes: "Searches all volumes. Faster than find for indexed locations", tags: ["software", "apps"] },
+  { category: "software", cmd: "mdfind -name 'Google Chrome'", desc: "Find files/apps by name using Spotlight index", notes: "Much faster than find. Returns full paths", tags: ["software", "search"] },
+  { category: "software", cmd: "arch -x86_64 /bin/bash", desc: "Launch a shell under Rosetta 2 (Intel emulation)", notes: "Useful for running Intel-only tools on Apple Silicon", tags: ["software", "rosetta"] },
+  { category: "software", cmd: "/usr/sbin/softwareupdate --install-rosetta --agree-to-license", desc: "Install Rosetta 2 silently", notes: "Required for Intel apps on Apple Silicon. Idempotent if already installed", tags: ["software", "rosetta"] },
+  { category: "software", cmd: "xcode-select --install", desc: "Install Command Line Developer Tools", notes: "Provides git, make, clang, and other dev tools without full Xcode", tags: ["software", "devtools"] },
+  { category: "software", cmd: "defaults read /Applications/{App}.app/Contents/Info.plist CFBundleShortVersionString", desc: "Get app version from its Info.plist", notes: "Works for any .app bundle. CFBundleVersion for build number", tags: ["software", "version"] },
+
+  // ── REFERENCE TABLES ──
+  { category: "reference", cmd: "# Key Log Paths", desc: "<table class='ref-table'><tr><th>Path</th><th>Contains</th></tr><tr><td>/var/log/install.log</td><td>Package installs, OS updates</td></tr><tr><td>/var/log/system.log</td><td>Legacy syslog (pre-unified logging)</td></tr><tr><td>~/Library/Logs/DiagnosticReports/</td><td>Crash reports (.ips)</td></tr><tr><td>/Library/Logs/</td><td>System-wide app logs</td></tr><tr><td>~/Library/Logs/</td><td>Per-user app logs</td></tr><tr><td>/var/kandji/log/</td><td>Kandji agent logs</td></tr><tr><td>/private/var/db/ConfigurationProfiles/</td><td>Installed profile storage</td></tr><tr><td>/var/db/receipts/</td><td>Package install receipts</td></tr></table>", tags: ["reference", "logs", "paths"] },
+  { category: "reference", cmd: "# Useful system_profiler Data Types", desc: "<table class='ref-table'><tr><th>Data Type</th><th>Returns</th></tr><tr><td>SPHardwareDataType</td><td>Model, chip, serial, memory</td></tr><tr><td>SPSoftwareDataType</td><td>OS version, kernel, uptime</td></tr><tr><td>SPStorageDataType</td><td>Volumes, capacity, filesystem</td></tr><tr><td>SPNetworkDataType</td><td>Interfaces, IPs, MACs</td></tr><tr><td>SPPowerDataType</td><td>Battery health, cycles, charge</td></tr><tr><td>SPDisplaysDataType</td><td>Displays, GPU, resolution</td></tr><tr><td>SPUSBDataType</td><td>Connected USB devices</td></tr><tr><td>SPBluetoothDataType</td><td>BT devices, firmware</td></tr><tr><td>SPFirewallDataType</td><td>Firewall config, rules</td></tr><tr><td>SPConfigurationProfileDataType</td><td>Installed MDM profiles</td></tr></table>", tags: ["reference", "system_profiler"] },
+  { category: "reference", cmd: "# Common defaults Domains", desc: "<table class='ref-table'><tr><th>Domain</th><th>Controls</th></tr><tr><td>com.apple.dock</td><td>Dock size, autohide, magnification</td></tr><tr><td>com.apple.finder</td><td>Show extensions, hidden files, view prefs</td></tr><tr><td>com.apple.loginwindow</td><td>Login window behavior, auto-login</td></tr><tr><td>com.apple.screensaver</td><td>Screensaver idle time, type</td></tr><tr><td>com.apple.screencapture</td><td>Screenshot format, location, shadows</td></tr><tr><td>NSGlobalDomain</td><td>System-wide prefs (key repeat, scroll)</td></tr><tr><td>com.apple.LaunchServices</td><td>Default handlers for file types</td></tr><tr><td>com.apple.SoftwareUpdate</td><td>Auto-update schedule, downloads</td></tr></table>", tags: ["reference", "defaults"] },
+  { category: "reference", cmd: "# Common Exit Codes", desc: "<table class='ref-table'><tr><th>Code</th><th>Meaning</th></tr><tr><td>0</td><td>Success</td></tr><tr><td>1</td><td>General error</td></tr><tr><td>2</td><td>Misuse of shell command</td></tr><tr><td>126</td><td>Permission denied (not executable)</td></tr><tr><td>127</td><td>Command not found</td></tr><tr><td>128+N</td><td>Killed by signal N (e.g. 137 = SIGKILL)</td></tr><tr><td>130</td><td>Terminated by Ctrl+C (SIGINT)</td></tr><tr><td>255</td><td>Exit status out of range</td></tr></table>", tags: ["reference", "exit codes"] },
+];
+
+// ── Render ──
+(function() {
+  const catNav = document.getElementById('cat-nav');
+  const content = document.getElementById('content');
+  const totalEntries = ENTRIES.filter(e => !e.cmd.startsWith('#')).length;
+  const totalAll = ENTRIES.length;
+
+  document.getElementById('total-count').textContent = totalEntries;
+  document.getElementById('cat-count').textContent = CATEGORY_META.length;
+
+  // Build category nav
+  const allBtn = document.createElement('button');
+  allBtn.className = 'cat-btn active';
+  allBtn.dataset.cat = 'all';
+  allBtn.textContent = 'ALL';
+  catNav.appendChild(allBtn);
+
+  CATEGORY_META.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn';
+    btn.dataset.cat = cat.id;
+    btn.textContent = cat.label.toUpperCase();
+    catNav.appendChild(btn);
+  });
+
+  // Build sections
+  CATEGORY_META.forEach(cat => {
+    const entries = ENTRIES.filter(e => e.category === cat.id);
+    if (!entries.length) return;
+
+    const secEl = document.createElement('div');
+    secEl.className = 'section';
+    secEl.dataset.cat = cat.id;
+
+    const cmdCount = entries.filter(e => !e.cmd.startsWith('#')).length;
+
+    secEl.innerHTML = '<div class="section-bar">' +
+      '<span class="section-icon">' + cat.icon + '</span>' +
+      '<span class="section-title">' + cat.label + '</span>' +
+      '<span class="section-count">' + cmdCount + ' commands</span>' +
+      '<span class="section-toggle">▼</span>' +
+    '</div>';
+
+    const list = document.createElement('div');
+    list.className = 'entry-list';
+
+    entries.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'entry-row';
+
+      const isRef = entry.cmd.startsWith('#');
+      const searchText = (entry.cmd + ' ' + entry.desc + ' ' + (entry.notes || '') + ' ' + (entry.tags || []).join(' ')).toLowerCase();
+      row.dataset.keywords = searchText;
+
+      if (isRef) {
+        row.innerHTML = '<div style="width:100%">' +
+          '<div style="font-family:var(--sans);font-size:12px;font-weight:700;color:var(--purple);margin-bottom:6px;letter-spacing:0.5px">' + entry.cmd.slice(2) + '</div>' +
+          '<div>' + entry.desc + '</div>' +
+        '</div>';
+      } else {
+        const tagsHtml = (entry.tags || []).map(t => {
+          const cls = t === 'sudo' ? 'tag-sudo' : t === 'kandji' ? 'tag-kandji' : 'tag-default';
+          return '<span class="tag ' + cls + '">' + t + '</span>';
+        }).join('');
+
+        row.innerHTML = '<div class="entry-cmd-wrap">' +
+          '<code class="entry-cmd">' + escHtml(entry.cmd) + '</code>' +
+          '<button class="copy-btn" data-cmd="' + escAttr(entry.cmd) + '">COPY</button>' +
+        '</div>' +
+        '<div class="entry-body">' +
+          '<div class="entry-desc">' + escHtml(entry.desc) + '</div>' +
+          (entry.notes ? '<div class="entry-notes">' + escHtml(entry.notes) + '</div>' : '') +
+          (tagsHtml ? '<div class="entry-tags">' + tagsHtml + '</div>' : '') +
+        '</div>';
+      }
+
+      list.appendChild(row);
+    });
+
+    secEl.appendChild(list);
+    content.appendChild(secEl);
+
+    // Collapse toggle
+    secEl.querySelector('.section-bar').addEventListener('click', function() {
+      secEl.classList.toggle('collapsed');
+    });
+  });
+
+  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function escAttr(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ── Copy buttons ──
+  content.addEventListener('click', function(e) {
+    const btn = e.target.closest('.copy-btn');
+    if (!btn) return;
+    const cmd = btn.getAttribute('data-cmd');
+    navigator.clipboard.writeText(cmd).then(function() {
+      btn.textContent = 'COPIED';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1200);
+    });
+  });
+
+  // ── Category nav ──
+  const catBtns = catNav.querySelectorAll('.cat-btn');
+  const sections = content.querySelectorAll('.section');
+
+  catBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var cat = btn.dataset.cat;
+      catBtns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      sections.forEach(function(sec) {
+        sec.classList.toggle('hidden', cat !== 'all' && sec.dataset.cat !== cat);
+      });
+      document.getElementById('search').value = '';
+      content.querySelectorAll('.entry-row').forEach(function(r) { r.classList.remove('hidden'); });
+      document.getElementById('search-stats').classList.remove('active');
+    });
+  });
+
+  // ── Search ──
+  var searchInput = document.getElementById('search');
+  var searchStats = document.getElementById('search-stats');
+
+  searchInput.addEventListener('input', function() {
+    var q = searchInput.value.toLowerCase().trim();
+    var allRows = content.querySelectorAll('.entry-row');
+
+    if (!q) {
+      allRows.forEach(function(r) { r.classList.remove('hidden'); });
+      sections.forEach(function(s) { s.classList.remove('hidden'); });
+      searchStats.classList.remove('active');
+      var activeCat = catNav.querySelector('.cat-btn.active').dataset.cat;
+      if (activeCat !== 'all') {
+        sections.forEach(function(s) { if (s.dataset.cat !== activeCat) s.classList.add('hidden'); });
+      }
+      return;
+    }
+
+    catBtns.forEach(function(b) { b.classList.remove('active'); });
+    catNav.querySelector('[data-cat="all"]').classList.add('active');
+    sections.forEach(function(s) { s.classList.remove('hidden'); });
+
+    var terms = q.split(/\s+/);
+    var visible = 0;
+
+    allRows.forEach(function(row) {
+      var text = row.dataset.keywords;
+      var match = terms.every(function(t) { return text.includes(t); });
+      row.classList.toggle('hidden', !match);
+      if (match) visible++;
+    });
+
+    sections.forEach(function(sec) {
+      var hasVisible = sec.querySelectorAll('.entry-row:not(.hidden)').length > 0;
+      sec.classList.toggle('hidden', !hasVisible);
+    });
+
+    searchStats.textContent = visible + ' of ' + totalAll + ' entries';
+    searchStats.classList.add('active');
+  });
+
+  // ── Keyboard shortcuts ──
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement !== searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+      searchInput.blur();
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+    }
+  });
+})();
+</script>
+</body>
+</html>
