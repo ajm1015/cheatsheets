@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Cheatsheet</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0f0c;
+    --bg2: #0d1410;
+    --bg3: #111a15;
+    --border: #1a2e22;
+    --border-bright: #2a4a35;
+    --green: #3cffa8;
+    --green-dim: #1a7a4a;
+    --green-glow: rgba(60, 255, 168, 0.15);
+    --green-glow2: rgba(60, 255, 168, 0.08);
+    --amber: #ffb84d;
+    --red: #ff5f5f;
+    --cyan: #5feaff;
+    --text: #c8e6d0;
+    --text-dim: #5a7a65;
+    --mono: 'SF Mono', 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Menlo', 'Consolas', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--mono);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.08) 2px,
+      rgba(0, 0, 0, 0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.4) 100%);
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  .header {
+    padding: 32px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--bg3) 0%, var(--bg) 100%);
+    position: relative;
+  }
+
+  .header::before {
+    content: '>';
+    position: absolute;
+    top: 32px;
+    left: 24px;
+    color: var(--green);
+    font-size: 20px;
+    font-weight: 700;
+    animation: blink 1.2s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .header h1 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-left: 24px;
+    text-shadow: 0 0 20px var(--green-glow);
+  }
+
+  .header .subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 24px;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .header .meta {
+    font-size: 10px;
+    color: var(--green-dim);
+    margin-left: 24px;
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+
+  .search-wrap {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .search-box {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 10px 14px 10px 36px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .search-box::placeholder { color: var(--text-dim); }
+
+  .search-box:focus {
+    border-color: var(--green-dim);
+    box-shadow: 0 0 12px var(--green-glow2), inset 0 0 8px var(--green-glow2);
+  }
+
+  .search-wrap::before {
+    content: '⌕';
+    position: absolute;
+    left: 38px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .search-stats {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+    display: none;
+  }
+
+  .search-stats.active { display: block; }
+
+  .cat-nav {
+    display: flex;
+    gap: 0;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .cat-nav::-webkit-scrollbar { display: none; }
+
+  .cat-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .cat-btn:hover { color: var(--text); }
+
+  .cat-btn.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+  }
+
+  .content { padding: 0 24px 60px; }
+
+  .section { margin-top: 32px; }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title .icon { font-size: 14px; opacity: 0.8; }
+  .section-title .count { font-size: 9px; font-weight: 400; color: var(--text-dim); margin-left: auto; }
+
+  .entry {
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    transition: border-color 0.2s;
+  }
+
+  .entry:hover { border-color: var(--border-bright); }
+
+  .entry-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+
+  .entry-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.5px;
+  }
+
+  .entry-tag {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid;
+    line-height: 1;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .tag-warn  { color: var(--amber); border-color: rgba(255,184,77,0.3); background: rgba(255,184,77,0.08); }
+  .tag-danger { color: var(--red);  border-color: rgba(255,95,95,0.3);  background: rgba(255,95,95,0.08); }
+  .tag-info  { color: var(--cyan);  border-color: rgba(95,234,255,0.3); background: rgba(95,234,255,0.08); }
+
+  .entry-body { padding: 10px 14px; }
+
+  .entry-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+
+  .entry-note {
+    font-size: 10px;
+    color: var(--amber);
+    margin-top: 8px;
+    padding: 5px 10px;
+    border-left: 2px solid var(--amber);
+    background: rgba(255,184,77,0.05);
+  }
+
+  pre {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    overflow-x: auto;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text);
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  pre .lang-label {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--green-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  pre .comment { color: var(--text-dim); }
+  pre .cmd  { color: var(--green); }
+  pre .arg  { color: var(--text); }
+  pre .flag { color: var(--cyan); }
+  pre .str  { color: var(--amber); }
+  pre .dest { color: var(--red); }
+
+  .copy-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    z-index: 2;
+  }
+
+  .copy-btn:hover { color: var(--green); border-color: var(--green-dim); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 16px;
+    letter-spacing: 0.5px;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  mark {
+    background: rgba(60, 255, 168, 0.25);
+    color: var(--green);
+    padding: 0 2px;
+  }
+
+  .entry.hidden, .section.hidden { display: none; }
+
+  @media (max-width: 600px) {
+    .header, .content { padding-left: 16px; padding-right: 16px; }
+    .cat-nav { padding: 0 16px; }
+    .search-wrap { padding: 12px 16px; }
+    .search-wrap::before { left: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Git Field Cheatsheet</h1>
+  <div class="subtitle">Setup · Core · Branching · Remote · Stash · Rewrite · Log · Config</div>
+  <div class="meta">LAST UPDATED: 2026-04-07 · COMMANDS: <span id="total-count">0</span></div>
+</div>
+
+<div class="search-wrap">
+  <input type="text" class="search-box" id="search" placeholder="Search commands, flags, descriptions… (press / to focus)" autocomplete="off" spellcheck="false">
+  <div class="search-stats" id="search-stats"></div>
+</div>
+
+<nav class="cat-nav" id="cat-nav">
+  <button class="cat-btn active" data-cat="all">ALL</button>
+  <button class="cat-btn" data-cat="setup">SETUP</button>
+  <button class="cat-btn" data-cat="core">CORE</button>
+  <button class="cat-btn" data-cat="branch">BRANCHING</button>
+  <button class="cat-btn" data-cat="remote">REMOTE</button>
+  <button class="cat-btn" data-cat="stash">STASH</button>
+  <button class="cat-btn" data-cat="rewrite">REWRITE / RESET</button>
+  <button class="cat-btn" data-cat="log">LOG / INSPECT</button>
+  <button class="cat-btn" data-cat="config">CONFIG</button>
+</nav>
+
+<div class="content" id="content">
+
+  <!-- ═══════════ SETUP ═══════════ -->
+  <div class="section" data-cat="setup" id="sec-setup">
+    <div class="section-title"><span class="icon">🛠</span> Setup &amp; Init<span class="count"></span></div>
+
+    <div class="entry" data-keywords="init new repo create initialize">
+      <div class="entry-header"><span class="entry-title">Initialize a Repository</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Create a new local repo in the current directory. Use <code>-b</code> to set the default branch name.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git init</span>
+<span class="cmd">git init</span> <span class="flag">-b</span> <span class="str">main</span>          <span class="comment"># set default branch name</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="clone download copy repo url ssh https depth shallow">
+      <div class="entry-header"><span class="entry-title">Clone a Repository</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Download a remote repo. Use <code>--depth</code> for a shallow clone (faster, no full history).</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git clone</span> <span class="str">&lt;url&gt;</span>
+<span class="cmd">git clone</span> <span class="str">&lt;url&gt;</span> <span class="arg">my-folder</span>          <span class="comment"># into named dir</span>
+<span class="cmd">git clone</span> <span class="flag">--depth</span> <span class="str">1</span> <span class="str">&lt;url&gt;</span>          <span class="comment"># shallow — latest commit only</span>
+<span class="cmd">git clone</span> <span class="flag">--branch</span> <span class="str">dev</span> <span class="str">&lt;url&gt;</span>      <span class="comment"># clone specific branch</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="identity name email user global config who">
+      <div class="entry-header"><span class="entry-title">Set Identity</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Set author name and email globally. Omit <code>--global</code> to scope to the current repo only.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git config</span> <span class="flag">--global</span> user.name  <span class="str">"Your Name"</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> user.email <span class="str">"you@example.com"</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="gitignore ignore exclude pattern file untrack">
+      <div class="entry-header"><span class="entry-title">Ignore Files</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Stop tracking a file that's already committed, then add it to <code>.gitignore</code>.</div>
+        <pre><span class="lang-label">GIT</span><span class="comment"># Remove from index without deleting on disk</span>
+<span class="cmd">git rm</span> <span class="flag">--cached</span> <span class="str">&lt;file&gt;</span>
+<span class="cmd">git rm</span> <span class="flag">--cached -r</span> <span class="str">&lt;dir&gt;</span>
+
+<span class="comment"># Then add to .gitignore and commit</span>
+<span class="cmd">echo</span> <span class="str">".DS_Store"</span> >> .gitignore</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CORE ═══════════ -->
+  <div class="section" data-cat="core" id="sec-core">
+    <div class="section-title"><span class="icon">📦</span> Core Workflow<span class="count"></span></div>
+
+    <div class="entry" data-keywords="status working tree staged modified untracked">
+      <div class="entry-header"><span class="entry-title">Check Status</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">See what's staged, modified, or untracked. <code>-s</code> is compact one-line-per-file format.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git status</span>
+<span class="cmd">git status</span> <span class="flag">-s</span>            <span class="comment"># short / compact</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="add stage index file patch partial hunk">
+      <div class="entry-header"><span class="entry-title">Stage Changes</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Add files to the staging area. Use <code>-p</code> to stage specific hunks interactively.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git add</span> <span class="str">&lt;file&gt;</span>
+<span class="cmd">git add</span> <span class="str">.</span>                <span class="comment"># stage all changes in cwd</span>
+<span class="cmd">git add</span> <span class="flag">-p</span>              <span class="comment"># interactive hunk selection</span>
+<span class="cmd">git add</span> <span class="flag">-u</span>              <span class="comment"># stage tracked files only (no new)</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="commit save message amend no-edit author sign">
+      <div class="entry-header"><span class="entry-title">Commit</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Save staged changes to history. <code>--amend</code> rewrites the last commit — avoid on pushed commits.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git commit</span> <span class="flag">-m</span> <span class="str">"message"</span>
+<span class="cmd">git commit</span> <span class="flag">-am</span> <span class="str">"message"</span>        <span class="comment"># stage tracked + commit</span>
+<span class="cmd">git commit</span> <span class="flag">--amend --no-edit</span>    <span class="comment"># amend without changing message</span>
+<span class="cmd">git commit</span> <span class="flag">--amend -m</span> <span class="str">"new msg"</span>  <span class="comment"># amend and rename</span></pre>
+        <div class="entry-note">⚠ --amend rewrites history. Never amend a commit that's already pushed to a shared branch.</div>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="diff show changes unstaged staged head comparison">
+      <div class="entry-header"><span class="entry-title">Diff</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Show what changed. Without <code>--staged</code>, shows unstaged changes only.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git diff</span>                  <span class="comment"># unstaged changes</span>
+<span class="cmd">git diff</span> <span class="flag">--staged</span>          <span class="comment"># staged vs last commit</span>
+<span class="cmd">git diff</span> <span class="str">HEAD</span>              <span class="comment"># all changes vs last commit</span>
+<span class="cmd">git diff</span> <span class="str">main..feature</span>     <span class="comment"># between branches</span>
+<span class="cmd">git diff</span> <span class="flag">--stat</span>            <span class="comment"># summary: files changed, ±lines</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="restore discard undo unstage checkout working">
+      <div class="entry-header"><span class="entry-title">Discard / Restore</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Undo uncommitted changes. <code>restore</code> is the modern command (git 2.23+). Changes are unrecoverable.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git restore</span> <span class="str">&lt;file&gt;</span>          <span class="comment"># discard working tree changes</span>
+<span class="cmd">git restore</span> <span class="flag">--staged</span> <span class="str">&lt;file&gt;</span>  <span class="comment"># unstage (keep working changes)</span>
+<span class="cmd">git restore</span> <span class="str">.</span>                 <span class="comment"># discard all working changes</span></pre>
+        <div class="entry-note">⚠ Working tree changes are gone permanently — no undo.</div>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="mv rename move file track">
+      <div class="entry-header"><span class="entry-title">Move / Rename Files</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Rename or move a tracked file so git preserves history.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git mv</span> <span class="str">old-name.txt</span> <span class="str">new-name.txt</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="rm delete remove file untrack purge">
+      <div class="entry-header"><span class="entry-title">Remove Files</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Delete a file and stage the removal. <code>--cached</code> removes from index only (keeps on disk).</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git rm</span> <span class="str">&lt;file&gt;</span>              <span class="comment"># delete + stage removal</span>
+<span class="cmd">git rm</span> <span class="flag">--cached</span> <span class="str">&lt;file&gt;</span>     <span class="comment"># untrack, keep on disk</span>
+<span class="cmd">git rm</span> <span class="flag">-r</span> <span class="str">&lt;dir&gt;</span>            <span class="comment"># remove directory</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ BRANCHING ═══════════ -->
+  <div class="section" data-cat="branch" id="sec-branch">
+    <div class="section-title"><span class="icon">🌿</span> Branching &amp; Merging<span class="count"></span></div>
+
+    <div class="entry" data-keywords="branch list create new show all remote tracking">
+      <div class="entry-header"><span class="entry-title">List / Create Branches</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">View and create branches. <code>-a</code> includes remote-tracking branches.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git branch</span>                  <span class="comment"># list local</span>
+<span class="cmd">git branch</span> <span class="flag">-a</span>               <span class="comment"># list local + remote</span>
+<span class="cmd">git branch</span> <span class="flag">-v</span>               <span class="comment"># with last commit info</span>
+<span class="cmd">git branch</span> <span class="str">&lt;name&gt;</span>           <span class="comment"># create branch (stay here)</span>
+<span class="cmd">git branch</span> <span class="flag">-d</span> <span class="str">&lt;name&gt;</span>        <span class="comment"># delete (merged only)</span>
+<span class="cmd">git branch</span> <span class="flag">-D</span> <span class="str">&lt;name&gt;</span>        <span class="comment"># force delete</span></pre>
+        <div class="entry-note">⚠ -D force-deletes even unmerged branches — work may be lost.</div>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="switch checkout branch change head detach">
+      <div class="entry-header"><span class="entry-title">Switch Branches</span></div>
+      <div class="entry-body">
+        <div class="entry-desc"><code>switch</code> is the modern way to change branches (git 2.23+). <code>-c</code> creates and switches in one step.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git switch</span> <span class="str">&lt;branch&gt;</span>        <span class="comment"># switch to existing branch</span>
+<span class="cmd">git switch</span> <span class="flag">-c</span> <span class="str">&lt;new-branch&gt;</span>  <span class="comment"># create + switch</span>
+<span class="cmd">git switch</span> <span class="flag">-</span>                <span class="comment"># switch to previous branch</span>
+<span class="cmd">git switch</span> <span class="flag">--detach</span> <span class="str">&lt;sha&gt;</span>  <span class="comment"># detached HEAD at commit</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="merge combine integrate fast-forward no-ff squash conflict">
+      <div class="entry-header"><span class="entry-title">Merge</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Integrate another branch into the current one. <code>--no-ff</code> always creates a merge commit.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git merge</span> <span class="str">&lt;branch&gt;</span>
+<span class="cmd">git merge</span> <span class="flag">--no-ff</span> <span class="str">&lt;branch&gt;</span>       <span class="comment"># force merge commit</span>
+<span class="cmd">git merge</span> <span class="flag">--squash</span> <span class="str">&lt;branch&gt;</span>     <span class="comment"># squash into single staged change</span>
+<span class="cmd">git merge</span> <span class="flag">--abort</span>               <span class="comment"># bail out mid-conflict</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="rebase replay linear history onto interactive squash fixup edit reorder">
+      <div class="entry-header"><span class="entry-title">Rebase</span><span class="entry-tag tag-warn">REWRITES HISTORY</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Replay commits on top of another base. <code>-i</code> opens interactive editor to squash, reorder, or edit.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git rebase</span> <span class="str">main</span>               <span class="comment"># rebase current branch onto main</span>
+<span class="cmd">git rebase</span> <span class="flag">-i</span> <span class="str">HEAD~3</span>           <span class="comment"># interactive: last 3 commits</span>
+<span class="cmd">git rebase</span> <span class="flag">-i</span> <span class="flag">--root</span>           <span class="comment"># interactive: entire history</span>
+<span class="cmd">git rebase</span> <span class="flag">--continue</span>          <span class="comment"># after resolving conflict</span>
+<span class="cmd">git rebase</span> <span class="flag">--abort</span>             <span class="comment"># bail out completely</span></pre>
+        <div class="entry-note">⚠ Never rebase commits that exist on a shared remote branch.</div>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="cherry-pick apply single commit another branch port backport">
+      <div class="entry-header"><span class="entry-title">Cherry-Pick</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Apply a specific commit from another branch onto the current branch.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git cherry-pick</span> <span class="str">&lt;sha&gt;</span>
+<span class="cmd">git cherry-pick</span> <span class="str">&lt;sha1&gt;</span>..<span class="str">&lt;sha2&gt;</span>   <span class="comment"># range (exclusive..inclusive)</span>
+<span class="cmd">git cherry-pick</span> <span class="flag">--no-commit</span> <span class="str">&lt;sha&gt;</span> <span class="comment"># apply but don't commit</span>
+<span class="cmd">git cherry-pick</span> <span class="flag">--abort</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ REMOTE ═══════════ -->
+  <div class="section" data-cat="remote" id="sec-remote">
+    <div class="section-title"><span class="icon">🌐</span> Remote<span class="count"></span></div>
+
+    <div class="entry" data-keywords="remote add origin list show url rename change upstream">
+      <div class="entry-header"><span class="entry-title">Manage Remotes</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Add, view, rename, and remove remote connections.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git remote</span> <span class="flag">-v</span>                              <span class="comment"># list remotes + URLs</span>
+<span class="cmd">git remote add</span> <span class="str">origin &lt;url&gt;</span>
+<span class="cmd">git remote set-url</span> <span class="str">origin &lt;new-url&gt;</span>
+<span class="cmd">git remote rename</span> <span class="str">origin upstream</span>
+<span class="cmd">git remote remove</span> <span class="str">origin</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="fetch download update remote tracking branch no merge">
+      <div class="entry-header"><span class="entry-title">Fetch</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Download remote changes without merging. Safe — never touches your working tree.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git fetch</span>                   <span class="comment"># fetch default remote</span>
+<span class="cmd">git fetch</span> <span class="str">origin</span>
+<span class="cmd">git fetch</span> <span class="flag">--all</span>             <span class="comment"># all remotes</span>
+<span class="cmd">git fetch</span> <span class="flag">--prune</span>           <span class="comment"># remove deleted remote branches</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="pull fetch merge update rebase integrate remote">
+      <div class="entry-header"><span class="entry-title">Pull</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Fetch + merge (or rebase) remote changes into the current branch.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git pull</span>
+<span class="cmd">git pull</span> <span class="flag">--rebase</span>           <span class="comment"># rebase instead of merge</span>
+<span class="cmd">git pull</span> <span class="str">origin main</span>       <span class="comment"># explicit remote + branch</span>
+<span class="cmd">git pull</span> <span class="flag">--ff-only</span>         <span class="comment"># abort if not fast-forward</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="push upload publish send remote branch set-upstream force">
+      <div class="entry-header"><span class="entry-title">Push</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Upload local commits to remote. <code>-u</code> sets the upstream tracking reference.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git push</span>
+<span class="cmd">git push</span> <span class="flag">-u</span> <span class="str">origin &lt;branch&gt;</span>    <span class="comment"># push + set upstream</span>
+<span class="cmd">git push</span> <span class="flag">--all</span>                 <span class="comment"># all branches</span>
+<span class="cmd">git push</span> <span class="flag">--tags</span>                <span class="comment"># push tags</span>
+<span class="cmd">git push</span> <span class="str">origin</span> <span class="dest">--force-with-lease</span> <span class="comment"># safe force push</span>
+<span class="cmd">git push</span> <span class="str">origin</span> <span class="dest">:&lt;branch&gt;</span>      <span class="comment"># delete remote branch</span></pre>
+        <div class="entry-note">⚠ --force-with-lease is safer than --force: fails if the remote has new commits you haven't fetched.</div>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="tag release annotated lightweight list delete push version">
+      <div class="entry-header"><span class="entry-title">Tags</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Mark release points. Annotated tags (<code>-a</code>) store tagger info; lightweight tags are just pointers.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git tag</span>                              <span class="comment"># list all tags</span>
+<span class="cmd">git tag</span> <span class="str">v1.0.0</span>                        <span class="comment"># lightweight tag</span>
+<span class="cmd">git tag</span> <span class="flag">-a</span> <span class="str">v1.0.0</span> <span class="flag">-m</span> <span class="str">"Release v1.0.0"</span>
+<span class="cmd">git push</span> <span class="str">origin</span> <span class="str">v1.0.0</span>              <span class="comment"># push single tag</span>
+<span class="cmd">git tag</span> <span class="flag">-d</span> <span class="str">v1.0.0</span>                    <span class="comment"># delete local tag</span>
+<span class="cmd">git push</span> <span class="str">origin</span> <span class="dest">:refs/tags/v1.0.0</span>   <span class="comment"># delete remote tag</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ STASH ═══════════ -->
+  <div class="section" data-cat="stash" id="sec-stash">
+    <div class="section-title"><span class="icon">📁</span> Stash<span class="count"></span></div>
+
+    <div class="entry" data-keywords="stash save shelve wip put aside temporary switch">
+      <div class="entry-header"><span class="entry-title">Stash Changes</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Temporarily shelve uncommitted changes to get a clean working tree.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git stash</span>                    <span class="comment"># stash tracked changes</span>
+<span class="cmd">git stash</span> <span class="flag">-u</span>                  <span class="comment"># include untracked files</span>
+<span class="cmd">git stash</span> <span class="flag">-m</span> <span class="str">"wip: feature"</span>  <span class="comment"># named stash</span>
+<span class="cmd">git stash</span> <span class="flag">-p</span>                  <span class="comment"># interactive / partial stash</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="stash pop apply list show drop clear restore retrieve">
+      <div class="entry-header"><span class="entry-title">Apply / Manage Stashes</span></div>
+      <div class="entry-body">
+        <div class="entry-desc"><code>pop</code> applies and removes the stash. <code>apply</code> keeps it. <code>drop</code> deletes without applying.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git stash list</span>
+<span class="cmd">git stash pop</span>                <span class="comment"># apply latest + remove</span>
+<span class="cmd">git stash apply</span> <span class="str">stash@{1}</span>   <span class="comment"># apply specific stash</span>
+<span class="cmd">git stash show</span> <span class="flag">-p</span>           <span class="comment"># diff of latest stash</span>
+<span class="cmd">git stash drop</span> <span class="str">stash@{0}</span>   <span class="comment"># delete a stash</span>
+<span class="cmd">git stash clear</span>              <span class="comment"># delete ALL stashes</span></pre>
+        <div class="entry-note">⚠ git stash clear is permanent — all stash entries are deleted.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ REWRITE / RESET ═══════════ -->
+  <div class="section" data-cat="rewrite" id="sec-rewrite">
+    <div class="section-title"><span class="icon">⚠</span> Rewrite / Reset<span class="count"></span></div>
+
+    <div class="entry" data-keywords="reset soft mixed hard head undo commit unstage">
+      <div class="entry-header"><span class="entry-title">Reset HEAD</span><span class="entry-tag tag-danger">DESTRUCTIVE</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Move HEAD (and optionally the index and working tree) to another commit.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git reset</span> <span class="flag">--soft</span>  <span class="str">HEAD~1</span>  <span class="comment"># undo commit, keep staged</span>
+<span class="cmd">git reset</span> <span class="flag">--mixed</span> <span class="str">HEAD~1</span>  <span class="comment"># undo commit, keep unstaged (default)</span>
+<span class="cmd">git reset</span> <span class="dest">--hard</span>  <span class="str">HEAD~1</span>  <span class="comment"># undo commit + discard all changes</span>
+<span class="cmd">git reset</span> <span class="dest">--hard</span>  <span class="str">origin/main</span> <span class="comment"># match remote exactly</span></pre>
+        <div class="entry-note">⚠ --hard permanently discards working tree changes. Cannot be undone without reflog.</div>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="revert undo safe commit new inverse public history">
+      <div class="entry-header"><span class="entry-title">Revert (Safe Undo)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Create a new commit that undoes a previous one. Safe for public/shared branches.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git revert</span> <span class="str">&lt;sha&gt;</span>
+<span class="cmd">git revert</span> <span class="flag">--no-commit</span> <span class="str">&lt;sha&gt;</span>   <span class="comment"># stage revert without committing</span>
+<span class="cmd">git revert</span> <span class="str">HEAD~3</span>..<span class="str">HEAD</span>         <span class="comment"># revert a range</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="reflog recover lost commit history safety net dangling">
+      <div class="entry-header"><span class="entry-title">Reflog (Recovery)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every HEAD movement is logged. Use reflog to find and recover "lost" commits after a hard reset.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git reflog</span>                        <span class="comment"># show HEAD history</span>
+<span class="cmd">git reflog</span> <span class="str">&lt;branch&gt;</span>               <span class="comment"># branch-specific log</span>
+<span class="cmd">git reset</span> <span class="flag">--hard</span> <span class="str">HEAD@{3}</span>        <span class="comment"># restore to reflog entry</span>
+<span class="cmd">git switch</span> <span class="flag">-c</span> <span class="str">recovery</span> <span class="str">&lt;sha&gt;</span>    <span class="comment"># branch from a lost SHA</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="clean untracked delete remove working tree files dirs">
+      <div class="entry-header"><span class="entry-title">Clean Working Tree</span><span class="entry-tag tag-danger">DESTRUCTIVE</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Delete untracked files and directories. Use <code>-n</code> first to dry-run and preview what will be deleted.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git clean</span> <span class="flag">-n</span>       <span class="comment"># dry run — preview only</span>
+<span class="cmd">git clean</span> <span class="dest">-f</span>        <span class="comment"># delete untracked files</span>
+<span class="cmd">git clean</span> <span class="dest">-fd</span>       <span class="comment"># delete files + untracked dirs</span>
+<span class="cmd">git clean</span> <span class="dest">-fdx</span>      <span class="comment"># also delete ignored files</span></pre>
+        <div class="entry-note">⚠ Deleted files are gone — not moved to trash. Always dry-run first with -n.</div>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="filter-repo filter-branch rewrite history remove secret file sensitive purge">
+      <div class="entry-header"><span class="entry-title">Purge a File from History</span><span class="entry-tag tag-danger">DESTRUCTIVE</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Remove a file from every commit in history. Requires <code>git-filter-repo</code> (preferred over deprecated filter-branch).</div>
+        <pre><span class="lang-label">SHELL</span><span class="comment"># Install: pip install git-filter-repo</span>
+<span class="cmd">git filter-repo</span> <span class="flag">--path</span> <span class="str">secrets.env</span> <span class="flag">--invert-paths</span>
+
+<span class="comment"># Then force-push all branches</span>
+<span class="cmd">git push</span> <span class="str">origin</span> <span class="dest">--force --all</span></pre>
+        <div class="entry-note">⚠ Rewrites entire history. All collaborators must re-clone. Rotate any exposed secrets immediately.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ LOG / INSPECT ═══════════ -->
+  <div class="section" data-cat="log" id="sec-log">
+    <div class="section-title"><span class="icon">🔍</span> Log / Inspect<span class="count"></span></div>
+
+    <div class="entry" data-keywords="log history commits author date graph pretty format oneline">
+      <div class="entry-header"><span class="entry-title">Log</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Browse commit history. <code>--oneline --graph</code> gives a compact visual branch diagram.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git log</span>
+<span class="cmd">git log</span> <span class="flag">--oneline</span>
+<span class="cmd">git log</span> <span class="flag">--oneline --graph --all</span>      <span class="comment"># visual branch graph</span>
+<span class="cmd">git log</span> <span class="flag">--author=</span><span class="str">"name"</span>
+<span class="cmd">git log</span> <span class="flag">--since=</span><span class="str">"2 weeks ago"</span>
+<span class="cmd">git log</span> <span class="flag">-p</span> <span class="str">&lt;file&gt;</span>               <span class="comment"># history of a file with diffs</span>
+<span class="cmd">git log</span> <span class="flag">--follow</span> <span class="str">&lt;file&gt;</span>         <span class="comment"># follow renames</span>
+<span class="cmd">git log</span> <span class="flag">--grep=</span><span class="str">"keyword"</span>        <span class="comment"># search commit messages</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="show commit object details message diff blob tree">
+      <div class="entry-header"><span class="entry-title">Show a Commit</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Display full details and diff for any commit, tag, or object.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git show</span> <span class="str">&lt;sha&gt;</span>
+<span class="cmd">git show</span> <span class="str">HEAD</span>
+<span class="cmd">git show</span> <span class="str">HEAD:path/to/file</span>     <span class="comment"># show file at that commit</span>
+<span class="cmd">git show</span> <span class="flag">--stat</span> <span class="str">&lt;sha&gt;</span>         <span class="comment"># changed files only</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="blame line who author last changed annotate">
+      <div class="entry-header"><span class="entry-title">Blame</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Show which commit and author last modified each line of a file.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git blame</span> <span class="str">&lt;file&gt;</span>
+<span class="cmd">git blame</span> <span class="flag">-L 20,35</span> <span class="str">&lt;file&gt;</span>    <span class="comment"># only lines 20–35</span>
+<span class="cmd">git blame</span> <span class="flag">-w</span> <span class="str">&lt;file&gt;</span>          <span class="comment"># ignore whitespace changes</span>
+<span class="cmd">git blame</span> <span class="flag">-C</span> <span class="str">&lt;file&gt;</span>          <span class="comment"># detect moved/copied code</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="grep search code content string pattern files commits">
+      <div class="entry-header"><span class="entry-title">Search Code &amp; History</span></div>
+      <div class="entry-body">
+        <div class="entry-desc"><code>git grep</code> searches the working tree. <code>-S</code> (pickaxe) finds commits that added/removed a string.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git grep</span> <span class="str">"TODO"</span>                        <span class="comment"># search working tree</span>
+<span class="cmd">git grep</span> <span class="flag">-n</span> <span class="str">"pattern"</span>                  <span class="comment"># with line numbers</span>
+<span class="cmd">git log</span> <span class="flag">-S</span> <span class="str">"functionName"</span>             <span class="comment"># commits that changed this string</span>
+<span class="cmd">git log</span> <span class="flag">-G</span> <span class="str">"regex"</span>                    <span class="comment"># commits matching regex in diff</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="bisect binary search bug regression find commit which introduced">
+      <div class="entry-header"><span class="entry-title">Bisect</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Binary search through history to find which commit introduced a bug.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git bisect start</span>
+<span class="cmd">git bisect bad</span>              <span class="comment"># current commit is broken</span>
+<span class="cmd">git bisect good</span> <span class="str">v1.2.0</span>     <span class="comment"># last known good point</span>
+<span class="comment"># git checks out midpoint — test, then:</span>
+<span class="cmd">git bisect good</span>             <span class="comment"># or: git bisect bad</span>
+<span class="cmd">git bisect reset</span>            <span class="comment"># done — return to original HEAD</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="worktree multiple checkout simultaneous parallel working directories">
+      <div class="entry-header"><span class="entry-title">Worktrees</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Check out multiple branches simultaneously in separate directories — no stashing needed.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git worktree add</span> <span class="str">../hotfix hotfix/123</span>  <span class="comment"># new dir + branch</span>
+<span class="cmd">git worktree list</span>
+<span class="cmd">git worktree remove</span> <span class="str">../hotfix</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CONFIG ═══════════ -->
+  <div class="section" data-cat="config" id="sec-config">
+    <div class="section-title"><span class="icon">⚙</span> Config &amp; Aliases<span class="count"></span></div>
+
+    <div class="entry" data-keywords="config list show all settings global local system view">
+      <div class="entry-header"><span class="entry-title">View Config</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Show effective config values and where they're set.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git config</span> <span class="flag">--list</span>
+<span class="cmd">git config</span> <span class="flag">--list --show-origin</span>    <span class="comment"># show which file each comes from</span>
+<span class="cmd">git config</span> user.email              <span class="comment"># get single value</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="alias shortcut abbreviation custom command config global">
+      <div class="entry-header"><span class="entry-title">Aliases</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Create short aliases for common commands.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git config</span> <span class="flag">--global</span> alias.st   <span class="str">"status -s"</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> alias.co   <span class="str">"switch"</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> alias.lg   <span class="str">"log --oneline --graph --all"</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> alias.undo <span class="str">"reset --soft HEAD~1"</span>
+
+<span class="comment"># Shell alias (run any external command)</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> alias.root <span class="str">"!pwd"</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="credential store helper token password auth save cache">
+      <div class="entry-header"><span class="entry-title">Credential Storage</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Cache credentials so you're not prompted every push/pull.</div>
+        <pre><span class="lang-label">GIT</span><span class="comment"># Cache in memory for 15 min (default)</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> credential.helper cache
+
+<span class="comment"># macOS Keychain</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> credential.helper osxkeychain
+
+<span class="comment"># Windows Credential Manager</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> credential.helper wincred</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="gpg sign commit tag verified signature key">
+      <div class="entry-header"><span class="entry-title">GPG Signing</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Sign commits and tags with a GPG key to prove authorship.</div>
+        <pre><span class="lang-label">GIT</span><span class="cmd">git config</span> <span class="flag">--global</span> user.signingkey <span class="str">&lt;key-id&gt;</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> commit.gpgsign true   <span class="comment"># sign all commits</span>
+<span class="cmd">git commit</span> <span class="flag">-S -m</span> <span class="str">"signed commit"</span>          <span class="comment"># sign one commit</span>
+<span class="cmd">git log</span> <span class="flag">--show-signature</span>                   <span class="comment"># verify signatures</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="line endings crlf lf autocrlf eol cross platform windows mac">
+      <div class="entry-header"><span class="entry-title">Line Endings</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Control how git handles CRLF vs LF across platforms.</div>
+        <pre><span class="lang-label">GIT</span><span class="comment"># Windows: convert to CRLF on checkout, LF on commit</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> core.autocrlf true
+
+<span class="comment"># macOS/Linux: convert CRLF to LF on commit only</span>
+<span class="cmd">git config</span> <span class="flag">--global</span> core.autocrlf input
+
+<span class="comment"># Enforce via .gitattributes (recommended)</span>
+<span class="comment"># * text=auto eol=lf</span></pre>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  GIT FIELD CHEATSHEET · 2026 · BUILT FOR SPEED
+</div>
+
+<div class="toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function() {
+  // Count entries
+  const allEntries = document.querySelectorAll('.entry');
+  document.getElementById('total-count').textContent = allEntries.length;
+
+  // Count per section
+  document.querySelectorAll('.section').forEach(sec => {
+    const count = sec.querySelectorAll('.entry').length;
+    const countEl = sec.querySelector('.count');
+    if (countEl) countEl.textContent = count + ' commands';
+  });
+
+  // Category nav
+  const catBtns = document.querySelectorAll('.cat-btn');
+  const sections = document.querySelectorAll('.section');
+
+  catBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cat = btn.dataset.cat;
+      catBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sections.forEach(sec => {
+        if (cat === 'all' || sec.dataset.cat === cat) {
+          sec.classList.remove('hidden');
+        } else {
+          sec.classList.add('hidden');
+        }
+      });
+      document.getElementById('search').value = '';
+      allEntries.forEach(e => e.classList.remove('hidden'));
+      document.getElementById('search-stats').classList.remove('active');
+    });
+  });
+
+  // Search
+  const searchInput = document.getElementById('search');
+  const searchStats = document.getElementById('search-stats');
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+
+    if (!q) {
+      allEntries.forEach(e => e.classList.remove('hidden'));
+      sections.forEach(s => s.classList.remove('hidden'));
+      searchStats.classList.remove('active');
+      const activeCat = document.querySelector('.cat-btn.active').dataset.cat;
+      if (activeCat !== 'all') {
+        sections.forEach(sec => {
+          if (sec.dataset.cat !== activeCat) sec.classList.add('hidden');
+        });
+      }
+      return;
+    }
+
+    catBtns.forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-cat="all"]').classList.add('active');
+    sections.forEach(s => s.classList.remove('hidden'));
+
+    const terms = q.split(/\s+/);
+    let visible = 0;
+
+    allEntries.forEach(entry => {
+      const text = (entry.textContent + ' ' + (entry.dataset.keywords || '')).toLowerCase();
+      const match = terms.every(t => text.includes(t));
+      entry.classList.toggle('hidden', !match);
+      if (match) visible++;
+    });
+
+    sections.forEach(sec => {
+      const hasVisible = sec.querySelectorAll('.entry:not(.hidden)').length > 0;
+      sec.classList.toggle('hidden', !hasVisible);
+    });
+
+    searchStats.textContent = visible + ' of ' + allEntries.length + ' commands';
+    searchStats.classList.add('active');
+  });
+
+  // Toast helper
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+
+  // Copy buttons on pre blocks
+  document.querySelectorAll('pre').forEach(pre => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'COPY';
+    btn.addEventListener('click', () => {
+      let text = pre.textContent;
+      const label = pre.querySelector('.lang-label');
+      if (label) text = text.replace(label.textContent, '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'COPIED';
+        btn.classList.add('copied');
+        showToast('Copied to clipboard');
+        setTimeout(() => {
+          btn.textContent = 'COPY';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.style.position = 'relative';
+    pre.appendChild(btn);
+  });
+
+  // Keyboard: / to focus search, Esc to clear
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+      searchInput.blur();
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+    }
+  });
+})();
+</script>
+</body>
+</html>
