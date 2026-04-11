@@ -440,6 +440,78 @@
     .entry-row { flex-direction: column; gap: 6px; }
     .entry-cmd-wrap { max-width: 100%; }
   }
+
+  /* ─────────── Command Palette ─────────── */
+  .cmdp-overlay {
+    display: none; position: fixed; inset: 0; z-index: 10000;
+    background: rgba(62,50,96,0.5);
+    align-items: flex-start; justify-content: center;
+    padding-top: 10vh;
+  }
+  .cmdp-overlay.show { display: flex; }
+  .cmdp {
+    width: min(660px, 92vw); max-height: 70vh;
+    background: var(--panel-light); border: 2px solid var(--shadow-deep);
+    box-shadow: var(--bevel-out), 0 24px 80px rgba(0,0,0,0.4);
+    display: flex; flex-direction: column;
+    font-family: var(--mono); color: var(--text);
+  }
+  .cmdp-input-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-bottom: 1px solid var(--shadow);
+    background: var(--panel);
+  }
+  .cmdp-prompt { color: var(--purple); font-weight: 700; font-size: 16px; }
+  .cmdp-input {
+    flex: 1; background: transparent; border: 0; outline: 0;
+    color: var(--text); font-family: var(--mono); font-size: 13px;
+  }
+  .cmdp-input::placeholder { color: var(--text-dim); }
+  .cmdp-hint {
+    font-size: 9px; color: var(--text-dim); padding: 2px 6px;
+    border: 1px solid var(--shadow); letter-spacing: 1px;
+    background: var(--panel);
+  }
+  .cmdp-results { flex: 1; overflow-y: auto; padding: 4px 0; background: var(--panel-light); }
+  .cmdp-row {
+    padding: 8px 16px; cursor: pointer;
+    border-left: 3px solid transparent;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .cmdp-row:hover, .cmdp-row.active {
+    background: rgba(123,97,255,0.08); border-left-color: var(--purple-bright);
+  }
+  .cmdp-row-title {
+    font-size: 12px; color: var(--text); font-weight: 700;
+    display: flex; align-items: center; gap: 8px; font-family: var(--sans);
+  }
+  .cmdp-row-cat {
+    font-size: 8px; padding: 1px 6px; border: 1px solid var(--shadow);
+    color: var(--purple); letter-spacing: 1px; text-transform: uppercase;
+    background: rgba(123,97,255,0.06);
+  }
+  .cmdp-row-cmd { font-size: 10px; color: var(--purple-bright); line-height: 1.4; }
+  .cmdp-row-desc { font-size: 10px; color: var(--text-dim); line-height: 1.4; }
+  .cmdp-empty {
+    padding: 24px 16px; text-align: center; color: var(--text-dim); font-size: 11px; font-family: var(--sans);
+  }
+  .cmdp-foot {
+    display: flex; gap: 14px; align-items: center;
+    padding: 8px 16px; border-top: 1px solid var(--shadow);
+    background: var(--panel);
+    font-size: 9px; color: var(--text-dim); letter-spacing: 0.5px; font-family: var(--sans);
+  }
+  .cmdp-foot kbd {
+    font-family: var(--mono); padding: 1px 5px;
+    border: 1px solid var(--shadow); color: var(--purple); font-size: 9px;
+  }
+  .cmdp-foot-spacer { flex: 1; }
+  .cmdp-count { color: var(--purple); }
+  .cmdp-flash { animation: cmdpFlash 500ms ease-out; }
+  @keyframes cmdpFlash {
+    0%   { background: rgba(123,97,255,0.15); }
+    100% { background: transparent; }
+  }
 </style>
 </head>
 <body>
@@ -494,6 +566,7 @@ const CATEGORY_META = [
   { id: "launch",    icon: "⚙", label: "Launch & Services" },
   { id: "security",  icon: "🔒", label: "Security" },
   { id: "software",  icon: "📦", label: "Software" },
+  { id: "internals", icon: "🧬", label: "Deep System Internals" },
   { id: "reference", icon: "📖", label: "Reference Tables" },
 ];
 
@@ -619,6 +692,24 @@ const ENTRIES = [
   { category: "software", cmd: "/usr/sbin/softwareupdate --install-rosetta --agree-to-license", desc: "Install Rosetta 2 silently", notes: "Required for Intel apps on Apple Silicon. Idempotent if already installed", tags: ["software", "rosetta"] },
   { category: "software", cmd: "xcode-select --install", desc: "Install Command Line Developer Tools", notes: "Provides git, make, clang, and other dev tools without full Xcode", tags: ["software", "devtools"] },
   { category: "software", cmd: "defaults read /Applications/{App}.app/Contents/Info.plist CFBundleShortVersionString", desc: "Get app version from its Info.plist", notes: "Works for any .app bundle. CFBundleVersion for build number", tags: ["software", "version"] },
+
+  // ── DEEP SYSTEM INTERNALS ──
+  { category: "internals", cmd: "sudo fs_usage -f network", desc: "Real-time filesystem and network syscall trace", notes: "Filter by 'network' class. Use Ctrl+C to stop. Heavy output", tags: ["sudo", "trace"] },
+  { category: "internals", cmd: "sudo dtrace -n 'syscall::open*:entry { printf(\"%s %s\", execname, copyinstr(arg0)); }'", desc: "DTrace every file-open syscall with process name and path", notes: "Requires SIP partially disabled (csrutil disable --without dtrace)", tags: ["sudo", "dtrace", "trace"] },
+  { category: "internals", cmd: "sudo powermetrics --samplers cpu_power,gpu_power -i 5000 -n 1", desc: "Single 5-second snapshot of CPU and GPU power draw", notes: "Per-core utilization and watts. Apple Silicon and Intel both supported", tags: ["sudo", "performance"] },
+  { category: "internals", cmd: "sudo log collect --last 1h --output ~/Desktop/syslog.logarchive", desc: "Bundle the last hour of unified logs into a logarchive", notes: "Open in Console.app for offline analysis. ~50-200MB", tags: ["sudo", "logs"] },
+  { category: "internals", cmd: "sudo sysctl -a | grep -i kern.securelevel", desc: "Show kernel BSD security level", notes: "0 = normal, 1+ = restricted writes/raw devices. Almost always 0 on macOS", tags: ["sudo", "kernel"] },
+  { category: "internals", cmd: "sudo kextstat | grep -v com.apple", desc: "List loaded third-party kernel extensions", notes: "Should be near-empty on modern macOS. Anything here may break on next OS upgrade", tags: ["sudo", "kext"] },
+  { category: "internals", cmd: "ioreg -r -c IOPlatformExpertDevice -d 2 | grep -i board-id", desc: "Get board-id (Mac model identifier in firmware)", notes: "Useful for compatibility lookups and SMBIOS info", tags: ["hardware"] },
+  { category: "internals", cmd: "sudo /usr/libexec/mdmclient dep nag", desc: "Force the DEP/ADE 'Remote Management' nag screen", notes: "Useful when an unenrolled supervised device hasn't shown the prompt yet", tags: ["sudo", "mdm"] },
+  { category: "internals", cmd: "sudo profiles validate -type enrollment", desc: "Validate the MDM enrollment profile signature and chain", notes: "Catches certificate-trust failures during enrollment", tags: ["sudo", "mdm"] },
+  { category: "internals", cmd: "networkQuality -v", desc: "Apple's built-in network quality test (Monterey+)", notes: "Measures upload/download throughput and responsiveness (RPM)", tags: ["network"] },
+  { category: "internals", cmd: "sudo pmset -g assertions", desc: "Show power-management assertions currently preventing sleep", notes: "Find the process holding 'PreventSystemSleep' or 'PreventDisplaySleep'", tags: ["sudo", "power"] },
+  { category: "internals", cmd: "openssl s_client -connect host:443 -servername host </dev/null 2>/dev/null | openssl x509 -noout -dates -subject", desc: "Fetch a remote TLS cert's subject and validity dates", notes: "Quick cert expiry check without a browser", tags: ["network", "tls"] },
+  { category: "internals", cmd: "sudo lsof -i -P -n | grep LISTEN", desc: "All listening sockets with process and PID", notes: "-P avoids port-name lookup, -n avoids DNS. Find what's bound where", tags: ["sudo", "network"] },
+  { category: "internals", cmd: "sudo dsconfigad -show", desc: "Show Active Directory binding status and config", notes: "Empty output = not bound. Useful on hybrid-managed Macs", tags: ["sudo", "directory"] },
+  { category: "internals", cmd: "sudo fdesetup validaterecovery", desc: "Test a FileVault personal/institutional recovery key without using it", notes: "Prompts for the recovery key string. Returns valid/invalid", tags: ["sudo", "filevault"] },
+  { category: "internals", cmd: "sudo nvram -xp", desc: "Dump entire NVRAM as XML plist", notes: "Includes boot-args, SystemAudioVolume, and platform UUID", tags: ["sudo", "firmware"] },
 
   // ── REFERENCE TABLES ──
   { category: "reference", cmd: "# Key Log Paths", desc: "<table class='ref-table'><tr><th>Path</th><th>Contains</th></tr><tr><td>/var/log/install.log</td><td>Package installs, OS updates</td></tr><tr><td>/var/log/system.log</td><td>Legacy syslog (pre-unified logging)</td></tr><tr><td>~/Library/Logs/DiagnosticReports/</td><td>Crash reports (.ips)</td></tr><tr><td>/Library/Logs/</td><td>System-wide app logs</td></tr><tr><td>~/Library/Logs/</td><td>Per-user app logs</td></tr><tr><td>/var/kandji/log/</td><td>Kandji agent logs</td></tr><tr><td>/private/var/db/ConfigurationProfiles/</td><td>Installed profile storage</td></tr><tr><td>/var/db/receipts/</td><td>Package install receipts</td></tr></table>", tags: ["reference", "logs", "paths"] },
@@ -792,7 +883,7 @@ const ENTRIES = [
 
   // ── Keyboard shortcuts ──
   document.addEventListener('keydown', function(e) {
-    if (e.key === '/' && document.activeElement !== searchInput) {
+    if (e.key === '/' && document.activeElement !== searchInput && !cmdpOpen()) {
       e.preventDefault();
       searchInput.focus();
     }
@@ -800,6 +891,135 @@ const ENTRIES = [
       searchInput.blur();
       searchInput.value = '';
       searchInput.dispatchEvent(new Event('input'));
+    }
+  });
+
+  // ── Command Palette ──
+  var cmdpEl = document.createElement('div');
+  cmdpEl.className = 'cmdp-overlay';
+  cmdpEl.id = 'cmdp-overlay';
+  cmdpEl.innerHTML =
+    '<div class="cmdp">' +
+    '<div class="cmdp-input-row">' +
+    '<span class="cmdp-prompt">&#62;</span>' +
+    '<input type="text" class="cmdp-input" id="cmdp-input" placeholder="Type to search\u2026 ($ or > to copy first match)" autocomplete="off" spellcheck="false">' +
+    '<span class="cmdp-hint">ESC</span>' +
+    '</div>' +
+    '<div class="cmdp-results" id="cmdp-results"></div>' +
+    '<div class="cmdp-foot">' +
+    '<span><kbd>&#8593;&#8595;</kbd> navigate</span>' +
+    '<span><kbd>&#8629;</kbd> jump</span>' +
+    '<span><kbd>$</kbd> copy</span>' +
+    '<span class="cmdp-foot-spacer"></span>' +
+    '<span class="cmdp-count" id="cmdp-count"></span>' +
+    '</div></div>';
+  document.body.appendChild(cmdpEl);
+
+  var cmdpOverlay = document.getElementById('cmdp-overlay');
+  var cmdpInput = document.getElementById('cmdp-input');
+  var cmdpResults = document.getElementById('cmdp-results');
+  var cmdpCount = document.getElementById('cmdp-count');
+  var cmdpOpen = function() { return cmdpOverlay.classList.contains('show'); };
+  var cmdpIdx = 0;
+  var cmdpRows = [];
+
+  var palIndex = ENTRIES.filter(function(e) { return !e.cmd.startsWith('#'); }).map(function(e) {
+    return {
+      title: e.desc,
+      cmd: e.cmd,
+      cat: e.category,
+      hay: (e.cmd + ' ' + e.desc + ' ' + (e.notes || '') + ' ' + (e.tags || []).join(' ')).toLowerCase(),
+    };
+  });
+
+  function palFuzzy(query, text) {
+    if (!query) return 0;
+    var q = query.toLowerCase(), t = text.toLowerCase();
+    if (t.includes(q)) return 100 + (t.startsWith(q) ? 20 : 0);
+    var qi = 0, score = 0, consec = 0;
+    for (var i = 0; i < t.length && qi < q.length; i++) {
+      if (t[i] === q[qi]) { score += 1 + consec * 5; if (i === 0 || /[\s\-_./]/.test(t[i-1])) score += 10; consec++; qi++; }
+      else consec = 0;
+    }
+    if (qi < q.length) return 0;
+    return score + 50 + Math.max(0, 30 - t.length);
+  }
+
+  function cmdpRender() {
+    var raw = cmdpInput.value.trim();
+    var copyMode = raw.charAt(0) === '$' || raw.charAt(0) === '>';
+    var q = copyMode ? raw.slice(1).trim() : raw;
+    cmdpResults.innerHTML = '';
+    if (!q) {
+      cmdpResults.innerHTML = '<div class="cmdp-empty">Type to search ' + palIndex.length + ' commands</div>';
+      cmdpCount.textContent = '';
+      cmdpRows = [];
+      return;
+    }
+    var scored = palIndex
+      .map(function(it) { return { it: it, score: palFuzzy(q, it.hay) }; })
+      .filter(function(s) { return s.score >= 20; })
+      .sort(function(a,b) { return b.score - a.score; })
+      .slice(0, 15);
+    cmdpRows = scored.map(function(s) { return s.it; });
+    cmdpCount.textContent = scored.length + (copyMode ? ' · COPY' : '');
+    if (!scored.length) { cmdpResults.innerHTML = '<div class="cmdp-empty">No matches</div>'; return; }
+    var esc = function(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    scored.forEach(function(s, i) {
+      var row = document.createElement('div');
+      row.className = 'cmdp-row' + (i === 0 ? ' active' : '');
+      row.innerHTML =
+        '<div class="cmdp-row-title"><span>' + esc(s.it.title) + '</span>' +
+        (s.it.cat ? '<span class="cmdp-row-cat">' + s.it.cat + '</span>' : '') + '</div>' +
+        '<div class="cmdp-row-cmd">' + esc(s.it.cmd) + '</div>';
+      row.addEventListener('click', function() { cmdpActivate(i); });
+      row.addEventListener('mouseenter', function() { cmdpIdx = i; cmdpHighlight(); });
+      cmdpResults.appendChild(row);
+    });
+    cmdpIdx = 0;
+  }
+  function cmdpHighlight() {
+    Array.from(cmdpResults.children).forEach(function(c, i) { c.classList.toggle('active', i === cmdpIdx); });
+    if (cmdpResults.children[cmdpIdx]) cmdpResults.children[cmdpIdx].scrollIntoView({ block: 'nearest' });
+  }
+  function cmdpActivate(i) {
+    var it = cmdpRows[i];
+    if (!it) return;
+    var raw = cmdpInput.value.trim();
+    if (raw.charAt(0) === '$' || raw.charAt(0) === '>') {
+      navigator.clipboard.writeText(it.cmd);
+      cmdpClose();
+      return;
+    }
+    cmdpClose();
+    // Find matching entry-row and scroll to it
+    var rows = content.querySelectorAll('.entry-row');
+    for (var j = 0; j < rows.length; j++) {
+      if ((rows[j].dataset.keywords || '').includes(it.cmd.toLowerCase().slice(0, 30))) {
+        var sec = rows[j].closest('.section');
+        if (sec) { sec.classList.remove('hidden', 'collapsed'); }
+        rows[j].classList.remove('hidden');
+        rows[j].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        rows[j].classList.add('cmdp-flash');
+        setTimeout(function(r) { return function() { r.classList.remove('cmdp-flash'); }; }(rows[j]), 600);
+        break;
+      }
+    }
+  }
+  function cmdpShow() { cmdpOverlay.classList.add('show'); cmdpInput.value = ''; cmdpRender(); setTimeout(function() { cmdpInput.focus(); }, 0); }
+  function cmdpClose() { cmdpOverlay.classList.remove('show'); }
+  cmdpInput.addEventListener('input', cmdpRender);
+  cmdpInput.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); if (cmdpIdx < cmdpRows.length - 1) { cmdpIdx++; cmdpHighlight(); } }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); if (cmdpIdx > 0) { cmdpIdx--; cmdpHighlight(); } }
+    else if (e.key === 'Enter') { e.preventDefault(); cmdpActivate(cmdpIdx); }
+    else if (e.key === 'Escape') { e.preventDefault(); cmdpClose(); }
+  });
+  cmdpOverlay.addEventListener('click', function(e) { if (e.target === cmdpOverlay) cmdpClose(); });
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      if (cmdpOpen()) cmdpClose(); else cmdpShow();
     }
   });
 })();

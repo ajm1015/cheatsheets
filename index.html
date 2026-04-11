@@ -23,23 +23,21 @@
     --text: #1e1b18;
     --text-dim: #6b6358;
     --text-light: #f0ece4;
-    --mono: 'IBM Plex Mono', 'Courier New', 'Menlo', 'Consolas', monospace;
-    --sans: 'IBM Plex Sans', 'Lucida Grande', 'Geneva', 'Helvetica', sans-serif;
+    --dark-panel: #0f1612;
+    --mono: 'IBM Plex Mono','Courier New','Menlo','Consolas',monospace;
+    --sans: 'IBM Plex Sans','Lucida Grande','Geneva','Helvetica',sans-serif;
     --bevel-out: inset -1px -1px 0 var(--sh), inset 1px 1px 0 var(--hi), inset -2px -2px 0 var(--sh-deep), inset 2px 2px 0 #f8f5f0;
     --bevel-in: inset 1px 1px 0 var(--sh), inset -1px -1px 0 var(--hi), inset 2px 2px 0 var(--sh-deep), inset -2px -2px 0 #f8f5f0;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
 
   body {
     font-family: var(--sans);
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
+    overflow: hidden;
     background-image:
       linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%),
       linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%);
@@ -47,291 +45,1077 @@
     background-position: 0 0, 2px 2px;
   }
 
-  .window {
-    width: 100%;
-    max-width: 640px;
-    border: 2px solid var(--sh-deep);
-    box-shadow: var(--bevel-out), 6px 6px 20px rgba(0,0,0,0.3);
-    background: var(--panel);
+  .desktop {
+    position: fixed;
+    inset: 0 0 40px 0;
+    overflow: hidden;
   }
 
-  .title-bar {
+  .desktop-inner {
+    height: 100%;
+    padding: 28px 40px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .desktop.blur .card { filter: blur(2px); opacity: 0.7; transition: filter 200ms, opacity 200ms; }
+
+  .banner {
+    border: 2px solid var(--sh-deep);
+    background: var(--panel);
+    box-shadow: var(--bevel-out), 4px 4px 16px rgba(0,0,0,0.25);
+    flex-shrink: 0;
+  }
+  .banner-bar {
     background: linear-gradient(180deg, #7a64b8 0%, var(--purple) 40%, var(--purple-dim) 100%);
     padding: 6px 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: flex; align-items: center; gap: 8px;
     border-bottom: 2px solid var(--sh-deep);
     user-select: none;
   }
-
-  .dot {
-    width: 14px; height: 14px;
-    border: 1px solid rgba(0,0,0,0.4);
-    box-shadow: inset -1px -1px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.3);
-  }
-
+  .dot { width: 14px; height: 14px; border: 1px solid rgba(0,0,0,0.4);
+    box-shadow: inset -1px -1px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.3); }
   .dot-r { background: #e05050; }
   .dot-y { background: #d4952a; }
   .dot-g { background: #50a850; }
-
-  .title-text {
-    flex: 1; text-align: center;
-    font-size: 13px; font-weight: 700; color: var(--text-light);
-    letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  .title-text { flex: 1; text-align: center; font-size: 13px; font-weight: 700;
+    color: var(--text-light); letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+  .banner-body {
+    padding: 12px 18px; background: var(--panel-light);
+    font-family: var(--mono); font-size: 10px; color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .banner-body .key {
+    font-weight: 700; color: var(--purple);
+    padding: 1px 5px; background: rgba(123,97,255,0.1);
+    border: 1px solid rgba(123,97,255,0.3);
   }
 
-  .body {
-    padding: 24px;
-    background: var(--panel-light);
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+    overflow-y: auto;
+    padding-right: 4px;
   }
-
-  /* Embedded terminal */
-  .term {
-    background: #1a1a1e;
-    border: 2px solid var(--sh-deep);
-    box-shadow: var(--bevel-in);
-    padding: 16px 18px;
-    margin-bottom: 20px;
-    font-family: var(--mono);
-    font-size: 12px;
-    line-height: 1.7;
-    color: #c0bca8;
-  }
-
-  .term .prompt { color: var(--gold-light); }
-  .term .path { color: #8ab4f8; }
-  .term .cmd { color: #e0dcc8; }
-  .term .out { color: #8a8678; }
-  .term .f-g { color: var(--green-term); }
-  .term .f-c { color: #5feaff; }
-  .term .f-p { color: var(--purple-bright); }
-  .term .cursor {
-    display: inline-block; width: 8px; height: 14px;
-    background: var(--gold-light);
-    animation: blink 1.2s step-end infinite;
-    vertical-align: text-bottom; margin-left: 2px;
-  }
-
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-  .term .line { margin-bottom: 2px; }
-
-  .section-label {
-    font-size: 10px; font-weight: 700; color: var(--text-dim);
-    letter-spacing: 1.5px; text-transform: uppercase;
-    margin-bottom: 10px; padding-bottom: 4px;
-    border-bottom: 1px solid var(--sh);
-  }
-
-  /* Cards */
-  .cards { display: flex; flex-direction: column; gap: 10px; }
 
   .card {
-    display: block; text-decoration: none;
     background: var(--panel);
     border: 2px solid var(--sh);
     box-shadow: var(--bevel-out);
-    padding: 14px 16px 14px 16px;
-    transition: box-shadow 0.2s, transform 0.15s;
+    padding: 14px 16px;
+    cursor: pointer;
     position: relative;
+    user-select: none;
+    transition: box-shadow 150ms, transform 150ms, opacity 180ms;
   }
-
-  .card:hover {
-    box-shadow: var(--bevel-out), 0 0 0 2px var(--purple-bright);
-    transform: translateY(-1px);
+  .card:hover { box-shadow: var(--bevel-out), 0 0 0 2px var(--purple-bright); transform: translateY(-1px); }
+  .card.open { opacity: 0.55; }
+  .card.open::after {
+    content: ''; position: absolute; top: 10px; right: 10px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green-term);
+    box-shadow: 0 0 6px var(--green-term), 0 0 2px #fff inset;
   }
-
-  .card:active {
-    box-shadow: var(--bevel-in);
-    transform: translateY(0);
-  }
+  .card.dragging { transform: scale(1.03); opacity: 0.9; z-index: 100;
+    box-shadow: var(--bevel-out), 0 8px 24px rgba(0,0,0,0.4); }
+  .card.drop-before { box-shadow: var(--bevel-out), -4px 0 0 var(--purple-bright); }
+  .card.drop-after  { box-shadow: var(--bevel-out), 4px 0 0 var(--purple-bright); }
 
   .card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-
-  .card-icon { font-size: 22px; line-height: 1; }
-
-  .card-title {
-    font-size: 14px; font-weight: 700; color: var(--purple); letter-spacing: 0.3px;
-  }
-
-  .card-tag {
-    margin-left: auto;
-    font-family: var(--mono); font-size: 8px; font-weight: 700;
-    letter-spacing: 0.5px; text-transform: uppercase;
-    padding: 2px 6px; border: 1px solid; border-radius: 2px;
-  }
-
-  .tag-dark {
-    color: var(--green-term);
-    border-color: rgba(60,255,168,0.35);
-    background: rgba(10,15,12,0.8);
-  }
-
-  .tag-retro {
-    color: var(--purple-bright);
-    border-color: rgba(123,97,255,0.35);
-    background: rgba(123,97,255,0.08);
-  }
-
-  .card-desc {
-    font-size: 11px; color: var(--text-dim); line-height: 1.5; margin-bottom: 8px;
-  }
-
-  .card-meta {
-    display: flex; gap: 14px;
-    font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px;
-  }
-
+  .card-icon { font-size: 20px; line-height: 1; }
+  .card-title { font-size: 13px; font-weight: 700; color: var(--purple); letter-spacing: 0.3px; }
+  .card-tag { margin-left: auto; font-family: var(--mono); font-size: 8px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 6px; border: 1px solid; }
+  .tag-dark { color: var(--green-term); border-color: rgba(60,255,168,0.35); background: rgba(10,15,12,0.85); }
+  .tag-retro { color: var(--purple-bright); border-color: rgba(123,97,255,0.35); background: rgba(123,97,255,0.08); }
+  .card-desc { font-size: 10px; color: var(--text-dim); line-height: 1.5; margin-bottom: 8px; }
+  .card-meta { display: flex; gap: 12px; font-family: var(--mono); font-size: 9px;
+    letter-spacing: 0.3px; flex-wrap: wrap; }
   .mv { color: var(--purple); font-weight: 600; }
   .ml { color: var(--text-dim); }
 
-  .card-arrow {
-    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-    font-size: 18px; font-weight: 700; color: var(--sh);
-    transition: color 0.2s, transform 0.2s;
-  }
-
-  .card:hover .card-arrow {
-    color: var(--purple); transform: translateY(-50%) translateX(3px);
-  }
-
-  .footer {
+  /* Floating windows */
+  .win {
+    position: fixed;
+    top: 0; left: 0;
+    width: 65vw; height: 70vh;
+    min-width: 400px; min-height: 300px;
     background: var(--panel);
-    border-top: 2px solid var(--sh);
-    box-shadow: inset 0 1px 0 var(--hi);
-    padding: 10px 24px;
-    display: flex; justify-content: space-between; align-items: center;
-    font-family: var(--mono); font-size: 9px; color: var(--text-dim); letter-spacing: 0.5px;
+    border: 2px solid var(--sh-deep);
+    box-shadow: var(--bevel-out), 0 12px 40px rgba(0,0,0,0.4);
+    display: flex; flex-direction: column;
+    will-change: transform;
+    transform: translate3d(0,0,0);
+    z-index: 10;
+    transition: box-shadow 150ms;
+  }
+  .win.focused {
+    box-shadow: var(--bevel-out), 0 0 0 2px rgba(123,97,255,0.55), 0 14px 44px rgba(0,0,0,0.5);
+  }
+  .win.dragging { opacity: 0.88; transition: none; }
+  .win.snap-anim {
+    transition: transform 220ms cubic-bezier(0.22,1,0.36,1),
+                width 220ms cubic-bezier(0.22,1,0.36,1),
+                height 220ms cubic-bezier(0.22,1,0.36,1);
+  }
+  .win.opening { animation: winOpen 180ms ease-out; transform-origin: var(--origin-x,50%) var(--origin-y,50%); }
+  .win.closing { animation: winClose 120ms ease-in forwards; }
+  .win.minimized { display: none; }
+
+  @keyframes winOpen {
+    from { opacity: 0; transform: translate3d(var(--tx,0), var(--ty,0), 0) scale(0.92); }
+    to   { opacity: 1; transform: translate3d(var(--tx,0), var(--ty,0), 0) scale(1); }
+  }
+  @keyframes winClose {
+    from { opacity: 1; transform: translate3d(var(--tx,0), var(--ty,0), 0) scale(1); }
+    to   { opacity: 0; transform: translate3d(var(--tx,0), var(--ty,0), 0) scale(0.95); }
   }
 
-  .footer-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--gold); border: 1px solid rgba(0,0,0,0.2);
-    box-shadow: inset -1px -1px 0 rgba(0,0,0,0.2), inset 1px 1px 0 rgba(255,255,255,0.3);
-    display: inline-block; margin-right: 6px; vertical-align: middle;
+  .win-chrome {
+    padding: 5px 8px 5px 12px;
+    display: flex; align-items: center; gap: 6px;
+    cursor: grab; user-select: none;
+    border-bottom: 1px solid var(--sh-deep);
+    flex-shrink: 0;
+  }
+  .win-chrome.grabbing { cursor: grabbing; }
+
+  .win--retro .win-chrome {
+    background: linear-gradient(180deg, #7a64b8 0%, var(--purple) 40%, var(--purple-dim) 100%);
+    color: var(--text-light);
+  }
+  .win--dark { background: var(--dark-panel); border-color: rgba(60,255,168,0.45); }
+  .win--dark.focused {
+    box-shadow: var(--bevel-out), 0 0 0 1px rgba(60,255,168,0.5), 0 14px 44px rgba(0,0,0,0.6);
+  }
+  .win--dark .win-chrome {
+    background: linear-gradient(180deg, #162019 0%, #0e1411 100%);
+    color: var(--green-term);
+    border-bottom: 1px solid rgba(60,255,168,0.3);
   }
 
-  @media (max-width: 500px) {
-    body { padding: 0; }
-    .window { max-width: 100%; border-left: none; border-right: none; }
-    .body { padding: 16px; }
-    .term { padding: 12px; font-size: 11px; }
+  .win-title { flex: 1; font-size: 12px; font-weight: 700; letter-spacing: 0.8px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .win-btns { display: flex; gap: 4px; }
+  .win-btn {
+    width: 20px; height: 18px;
+    border: 1px solid rgba(0,0,0,0.45);
+    background: var(--panel);
+    cursor: pointer; font-family: var(--mono); font-size: 11px;
+    line-height: 1; padding: 0; color: var(--text);
+    box-shadow: inset -1px -1px 0 rgba(0,0,0,0.25), inset 1px 1px 0 rgba(255,255,255,0.4);
+  }
+  .win-btn:active {
+    box-shadow: inset 1px 1px 0 rgba(0,0,0,0.25), inset -1px -1px 0 rgba(255,255,255,0.4);
+  }
+  .win--dark .win-btn {
+    background: #182620; color: var(--green-term);
+    border-color: rgba(60,255,168,0.4); box-shadow: none;
+  }
+  .win--dark .win-btn:hover { background: #1f3028; }
+  .win--dark .win-btn:active { background: #0a130f; }
+
+  .win-body {
+    flex: 1; position: relative; background: #fff; overflow: hidden;
+  }
+  .win-body iframe {
+    width: 100%; height: 100%; border: 0; display: block;
+    background: #fff;
+  }
+  .win.dragging .win-body, .win.resizing .win-body { pointer-events: none; }
+
+  .rh { position: absolute; z-index: 2; }
+  .rh-n  { top: -4px;    left: 8px; right: 8px; height: 8px;  cursor: n-resize; }
+  .rh-s  { bottom: -4px; left: 8px; right: 8px; height: 8px;  cursor: s-resize; }
+  .rh-e  { top: 8px; bottom: 8px;   right: -4px; width: 8px;  cursor: e-resize; }
+  .rh-w  { top: 8px; bottom: 8px;   left: -4px;  width: 8px;  cursor: w-resize; }
+  .rh-ne { top: -4px;    right: -4px; width: 12px; height: 12px; cursor: ne-resize; }
+  .rh-nw { top: -4px;    left: -4px;  width: 12px; height: 12px; cursor: nw-resize; }
+  .rh-se { bottom: -4px; right: -4px; width: 12px; height: 12px; cursor: se-resize; }
+  .rh-sw { bottom: -4px; left: -4px;  width: 12px; height: 12px; cursor: sw-resize; }
+
+  .snap-overlay {
+    position: fixed; pointer-events: none; z-index: 9998;
+    background: rgba(123,97,255,0.15);
+    border: 2px solid rgba(123,97,255,0.5);
+    opacity: 0; transition: opacity 100ms;
+  }
+  .snap-overlay.show { opacity: 1; }
+
+  .taskbar {
+    position: fixed; left: 0; right: 0; bottom: 0; height: 40px;
+    background: linear-gradient(180deg, var(--panel-light) 0%, var(--panel) 100%);
+    border-top: 2px solid var(--sh-deep);
+    box-shadow: inset 0 1px 0 var(--hi), 0 -2px 8px rgba(0,0,0,0.2);
+    display: flex; align-items: center; padding: 0 10px; gap: 8px;
+    z-index: 9999;
+    font-family: var(--mono);
+  }
+  .taskbar-logo {
+    font-weight: 700; font-size: 10px; color: var(--purple); letter-spacing: 1px;
+    padding: 0 12px; border-right: 1px solid var(--sh); height: 28px;
+    display: flex; align-items: center;
+  }
+  .taskbar-items {
+    display: flex; gap: 4px; flex: 1;
+    overflow-x: auto; overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+  .taskbar-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 10px; height: 26px;
+    background: var(--panel); border: 1px solid var(--sh);
+    box-shadow: var(--bevel-out);
+    cursor: pointer; font-size: 10px; font-weight: 600; color: var(--text);
+    max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: transform 100ms, box-shadow 100ms;
+    flex-shrink: 0;
+  }
+  .taskbar-item:hover { transform: scale(1.05); }
+  .taskbar-item.active { box-shadow: var(--bevel-in); background: var(--panel-light); }
+  .taskbar-item.minimized { opacity: 0.7; }
+  .taskbar-clock {
+    font-size: 11px; color: var(--text); font-weight: 600;
+    padding: 0 12px; border-left: 1px solid var(--sh); height: 28px;
+    display: flex; align-items: center;
+  }
+
+  .ctx-menu {
+    position: fixed; z-index: 10000;
+    background: var(--panel); border: 2px solid var(--sh-deep);
+    box-shadow: var(--bevel-out), 4px 4px 16px rgba(0,0,0,0.4);
+    padding: 4px; min-width: 200px;
+    font-family: var(--sans);
+  }
+  .ctx-menu-item {
+    padding: 6px 14px; cursor: pointer; font-size: 11px;
+    color: var(--text); display: flex; align-items: center; gap: 10px;
+    user-select: none;
+  }
+  .ctx-menu-item:hover { background: var(--purple); color: var(--text-light); }
+  .ctx-menu-sep { height: 1px; background: var(--sh); margin: 3px 0; }
+
+  @media (max-width: 767px) {
+    body { overflow: auto; }
+    .desktop { position: static; inset: auto; }
+    .desktop-inner { padding: 16px; max-width: 100%; height: auto; }
+    .cards { overflow: visible; grid-template-columns: 1fr; }
+    .win, .taskbar, .snap-overlay, .ctx-menu { display: none !important; }
   }
 </style>
 </head>
 <body>
 
-<div class="window">
-  <div class="title-bar">
-    <div class="dot dot-r"></div>
-    <div class="dot dot-y"></div>
-    <div class="dot dot-g"></div>
-    <div class="title-text">Field Guides</div>
-    <div class="dot dot-g"></div>
-    <div class="dot dot-y"></div>
-    <div class="dot dot-r"></div>
-  </div>
-
-  <div class="body">
-    <div class="term">
-      <div class="line"><span class="prompt">❯</span> <span class="path">~/cheatsheets</span> <span class="cmd">ls -la</span></div>
-      <div class="line"><span class="out">drwxr-xr-x  4 user user  4096 Mar 30 14:00 .</span></div>
-      <div class="line"><span class="out">-rw-r--r--  1 user user  48K  Mar 30 14:00</span> <span class="f-g">windows-field-cheatsheet.html</span></div>
-      <div class="line"><span class="out">-rw-r--r--  1 user user  38K  Mar 18 21:30</span> <span class="f-c">macos-shortcuts.html</span></div>
-      <div class="line"><span class="out">-rw-r--r--  1 user user  52K  Mar 30 12:00</span> <span class="f-p">windows-shortcuts.html</span></div>
-      <div class="line"><span class="out">-rw-r--r--  1 user user  45K  Apr 02 09:00</span> <span class="f-p">macos-field-guide.html</span></div>
-      <div class="line" style="margin-top:8px"><span class="prompt">❯</span> <span class="path">~/cheatsheets</span> <span class="cmd">cat README</span></div>
-      <div class="line"><span class="out">Dense field reference for desktop engineering.</span></div>
-      <div class="line"><span class="out">No fluff. Copy-paste ready. Built for speed.</span></div>
-      <div class="line" style="margin-top:8px"><span class="prompt">❯</span> <span class="path">~/cheatsheets</span> <span class="cursor"></span></div>
+<div class="desktop" id="desktop">
+  <div class="desktop-inner">
+    <div class="banner">
+      <div class="banner-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <div class="title-text">Field Guides · Desktop</div>
+        <div class="dot dot-g"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-r"></div>
+      </div>
+      <div class="banner-body">
+        Click a card to launch a window · Drag title bars to move · Drag edges to resize ·
+        Right-click desktop for layout options · <span class="key">Ctrl+Arrow</span> to snap ·
+        <span class="key">Ctrl+K</span> inside a guide for command palette
+      </div>
     </div>
-
-    <div class="section-label">Available Guides</div>
-
-    <div class="cards">
-      <a href="windows-field-cheatsheet.html" class="card">
-        <div class="card-top">
-          <span class="card-icon">🪟</span>
-          <span class="card-title">Windows Field Cheatsheet</span>
-          <span class="card-tag tag-dark">TERMINAL</span>
-        </div>
-        <div class="card-desc">Intune/Autopilot deployment, Windows break-fix, M365/Exchange/Teams troubleshooting, PowerShell one-liners</div>
-        <div class="card-meta">
-          <span><span class="mv">33</span> <span class="ml">entries</span></span>
-          <span><span class="mv">5</span> <span class="ml">sections</span></span>
-          <span><span class="ml">style:</span> <span class="mv">hacker dark</span></span>
-        </div>
-        <span class="card-arrow">→</span>
-      </a>
-
-      <a href="macos-shortcuts.html" class="card">
-        <div class="card-top">
-          <span class="card-icon">🍎</span>
-          <span class="card-title">macOS Shortcut Cheatsheet</span>
-          <span class="card-tag tag-dark">TERMINAL</span>
-        </div>
-        <div class="card-desc">System, Finder, editing, terminal, Safari, Cursor/VSCode, accessibility, text formatting, and more</div>
-        <div class="card-meta">
-          <span><span class="mv">210+</span> <span class="ml">shortcuts</span></span>
-          <span><span class="mv">20</span> <span class="ml">categories</span></span>
-          <span><span class="ml">style:</span> <span class="mv">hacker dark</span></span>
-        </div>
-        <span class="card-arrow">→</span>
-      </a>
-
-      <a href="windows-shortcuts.html" class="card">
-        <div class="card-top">
-          <span class="card-icon">⌨️</span>
-          <span class="card-title">Windows Shortcut Cheatsheet</span>
-          <span class="card-tag tag-retro">WORKSTATION</span>
-        </div>
-        <div class="card-desc">System, Explorer, virtual desktops, snap layouts, accessibility, PowerShell/Terminal, Notepad, Edge</div>
-        <div class="card-meta">
-          <span><span class="mv">285</span> <span class="ml">shortcuts</span></span>
-          <span><span class="mv">7</span> <span class="ml">categories</span></span>
-          <span><span class="ml">style:</span> <span class="mv">SUN / NeXTSTEP</span></span>
-        </div>
-        <span class="card-arrow">→</span>
-      </a>
-
-      <a href="macos-field-guide.html" class="card">
-        <div class="card-top">
-          <span class="card-icon">🍎</span>
-          <span class="card-title">macOS Field Guide</span>
-          <span class="card-tag tag-retro">WORKSTATION</span>
-        </div>
-        <div class="card-desc">Kandji/MDM, disk/storage, network, system info, user/identity, logs, services, security, software admin</div>
-        <div class="card-meta">
-          <span><span class="mv">100+</span> <span class="ml">commands</span></span>
-          <span><span class="mv">10</span> <span class="ml">categories</span></span>
-          <span><span class="ml">style:</span> <span class="mv">SUN / NeXTSTEP</span></span>
-        </div>
-        <span class="card-arrow">→</span>
-      </a>
-
-      <a href="git.html" class="card">
-        <div class="card-top">
-          <span class="card-icon">🌿</span>
-          <span class="card-title">Git</span>
-          <span class="card-tag tag-dark">TERMINAL</span>
-        </div>
-        <div class="card-desc">60 commands — click to copy. Setup, core workflow, branching, remote, stash, rewrite/reset, log, config</div>
-        <div class="card-meta">
-          <span><span class="mv">60</span> <span class="ml">commands</span></span>
-          <span><span class="mv">8</span> <span class="ml">sections</span></span>
-          <span><span class="ml">style:</span> <span class="mv">hacker dark</span></span>
-        </div>
-        <span class="card-arrow">→</span>
-      </a>
-    </div>
-  </div>
-
-  <div class="footer">
-    <span><span class="footer-dot"></span>FIELD GUIDES · 2026</span>
-    <span>5 REFERENCES AVAILABLE</span>
+    <div class="cards" id="cards"></div>
   </div>
 </div>
 
+<div class="taskbar" id="taskbar">
+  <div class="taskbar-logo">FIELD GUIDES</div>
+  <div class="taskbar-items" id="taskbar-items"></div>
+  <div class="taskbar-clock" id="clock"></div>
+</div>
+
+<script>
+/* ============================================================
+   Field Guides Desktop Window Manager
+   Pure vanilla JS, no dependencies.
+   ============================================================ */
+
+const GUIDES = [
+  { file: 'windows-field-cheatsheet.html', icon: '&#x1F5A5;', title: 'Windows Field Cheatsheet', theme: 'dark',
+    desc: 'Intune/Autopilot, break-fix, M365/Exchange/Teams, PowerShell, endpoint forensics, remote fleet',
+    tag: 'TERMINAL', meta: [['49','entries'],['7','sections'],['style:','hacker dark']] },
+  { file: 'macos-shortcuts.html', icon: '&#x1F34E;', title: 'macOS Shortcut Cheatsheet', theme: 'dark',
+    desc: 'System, Finder, editing, terminal, Safari, Cursor/VSCode, accessibility, hidden gestures, terminal power moves',
+    tag: 'TERMINAL', meta: [['228+','shortcuts'],['22','categories'],['style:','hacker dark']] },
+  { file: 'windows-shortcuts.html', icon: '&#x2328;', title: 'Windows Shortcut Cheatsheet', theme: 'retro',
+    desc: 'System, Explorer, virtual desktops, snap layouts, accessibility, hidden/undocumented shortcuts',
+    tag: 'WORKSTATION', meta: [['291+','shortcuts'],['8','categories'],['style:','SUN / NeXTSTEP']] },
+  { file: 'macos-field-guide.html', icon: '&#x1F34F;', title: 'macOS Field Guide', theme: 'retro',
+    desc: 'Kandji/MDM, disk, network, logs, services, security, deep system internals, DTrace, power metrics',
+    tag: 'WORKSTATION', meta: [['130+','commands'],['11','categories'],['style:','SUN / NeXTSTEP']] },
+  { file: 'git.html', icon: '&#x1F33F;', title: 'Git', theme: 'dark',
+    desc: 'Setup, core workflow, branching, remote, stash, rewrite, log, advanced/esoteric (range-diff, rerere, sparse)',
+    tag: 'TERMINAL', meta: [['71','commands'],['9','sections'],['style:','hacker dark']] },
+];
+
+const LS = {
+  ORDER: 'fieldguides-card-order',
+  WIN:   'fieldguides-open-windows',
+  BLUR:  'fieldguides-blur-enabled',
+};
+const MAX_WINDOWS = 6;
+const IS_MOBILE = () => window.innerWidth < 768;
+
+const state = {
+  windows: new Map(),   // file -> { el, guide, state }
+  zCounter: 10,
+  focused: null,
+  blur: false,
+};
+
+const $  = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
+const load = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e) { return d; } };
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const viewportBox = () => ({ w: window.innerWidth, h: window.innerHeight - 40 });
+
+/* ---------------------------- Cards ---------------------------- */
+function renderCards() {
+  const host = $('#cards');
+  host.innerHTML = '';
+  const order = load(LS.ORDER, GUIDES.map(g => g.file));
+  const byFile = Object.fromEntries(GUIDES.map(g => [g.file, g]));
+  const seen = new Set();
+  const ordered = [];
+  for (const file of order) {
+    if (byFile[file] && !seen.has(file)) { ordered.push(byFile[file]); seen.add(file); }
+  }
+  for (const g of GUIDES) if (!seen.has(g.file)) ordered.push(g);
+
+  for (const g of ordered) {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.dataset.file = g.file;
+    el.draggable = true;
+    el.innerHTML = `
+      <div class="card-top">
+        <span class="card-icon">${g.icon}</span>
+        <span class="card-title">${g.title}</span>
+        <span class="card-tag ${g.theme === 'dark' ? 'tag-dark' : 'tag-retro'}">${g.tag}</span>
+      </div>
+      <div class="card-desc">${g.desc}</div>
+      <div class="card-meta">
+        ${g.meta.map(([v,l]) => `<span><span class="mv">${v}</span> <span class="ml">${l}</span></span>`).join('')}
+      </div>
+    `;
+    el.addEventListener('click', () => {
+      if (el.dataset.suppressClick === '1') { el.dataset.suppressClick = '0'; return; }
+      if (IS_MOBILE()) { window.location.href = g.file; return; }
+      openWindow(g.file, el);
+    });
+    attachCardDrag(el);
+    host.appendChild(el);
+  }
+  syncCardOpenStates();
+}
+
+function syncCardOpenStates() {
+  $$('.card').forEach(c => {
+    const w = state.windows.get(c.dataset.file);
+    c.classList.toggle('open', !!(w && !w.state.closed));
+  });
+}
+
+function saveCardOrder() {
+  save(LS.ORDER, $$('.card').map(c => c.dataset.file));
+}
+
+/* ---------------------- Card drag-to-reorder ---------------------- */
+let cardDragSrc = null;
+function attachCardDrag(el) {
+  el.addEventListener('dragstart', (e) => {
+    cardDragSrc = el;
+    el.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', el.dataset.file); } catch(_) {}
+  });
+  el.addEventListener('dragend', () => {
+    el.classList.remove('dragging');
+    el.dataset.suppressClick = '1';
+    setTimeout(() => { el.dataset.suppressClick = '0'; }, 60);
+    cardDragSrc = null;
+    $$('.card').forEach(c => c.classList.remove('drop-before','drop-after'));
+  });
+  el.addEventListener('dragover', (e) => {
+    if (!cardDragSrc || cardDragSrc === el) return;
+    e.preventDefault();
+    const r = el.getBoundingClientRect();
+    const after = (e.clientX - r.left) > r.width / 2;
+    el.classList.toggle('drop-before', !after);
+    el.classList.toggle('drop-after', after);
+  });
+  el.addEventListener('dragleave', () => el.classList.remove('drop-before','drop-after'));
+  el.addEventListener('drop', (e) => {
+    e.preventDefault();
+    el.classList.remove('drop-before','drop-after');
+    if (!cardDragSrc || cardDragSrc === el) return;
+    const r = el.getBoundingClientRect();
+    const after = (e.clientX - r.left) > r.width / 2;
+    el.parentNode.insertBefore(cardDragSrc, after ? el.nextSibling : el);
+    saveCardOrder();
+  });
+}
+
+/* ------------------------- Window creation ------------------------- */
+function openWindow(file, sourceCard) {
+  if (state.windows.has(file)) {
+    const w = state.windows.get(file);
+    if (w.state.minimized) restoreWindow(file);
+    focusWindow(file);
+    return;
+  }
+  const active = [...state.windows.values()].filter(w => !w.state.closed).length;
+  if (active >= MAX_WINDOWS) return;
+
+  const guide = GUIDES.find(g => g.file === file);
+  if (!guide) return;
+
+  const vp = viewportBox();
+  const w = Math.round(Math.min(vp.w * 0.65, 1000));
+  const h = Math.round(Math.min(vp.h * 0.70, 800));
+  const offset = (state.windows.size % 6) * 28;
+  const x = clamp(Math.round((vp.w - w) / 2) + offset, 0, vp.w - 100);
+  const y = clamp(Math.round((vp.h - h) / 2 - 20) + offset, 0, vp.h - 100);
+
+  const el = createWindowEl(guide, { x, y, w, h });
+
+  if (sourceCard) {
+    const cRect = sourceCard.getBoundingClientRect();
+    el.style.setProperty('--origin-x', `${(cRect.left + cRect.width/2) - x}px`);
+    el.style.setProperty('--origin-y', `${(cRect.top  + cRect.height/2) - y}px`);
+  }
+  document.body.appendChild(el);
+  el.classList.add('opening');
+  el.addEventListener('animationend', () => el.classList.remove('opening'), { once: true });
+
+  state.windows.set(file, {
+    el, guide,
+    state: { x, y, w, h, minimized: false, maximized: false, preMax: null, closed: false }
+  });
+
+  focusWindow(file);
+  syncCardOpenStates();
+  renderTaskbar();
+  persistWindows();
+}
+
+function createWindowEl(guide, { x, y, w, h }) {
+  const el = document.createElement('div');
+  el.className = `win win--${guide.theme}`;
+  el.dataset.file = guide.file;
+  el.style.width = w + 'px';
+  el.style.height = h + 'px';
+  el.style.setProperty('--tx', x + 'px');
+  el.style.setProperty('--ty', y + 'px');
+  el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  el.innerHTML = `
+    <div class="win-chrome">
+      <span class="win-title">${guide.icon} ${guide.title}</span>
+      <div class="win-btns">
+        <button class="win-btn" data-act="min" title="Minimize">_</button>
+        <button class="win-btn" data-act="max" title="Maximize">&#9723;</button>
+        <button class="win-btn" data-act="close" title="Close">&times;</button>
+      </div>
+    </div>
+    <div class="win-body"><iframe src="${guide.file}" title="${guide.title}"></iframe></div>
+    <div class="rh rh-n"></div><div class="rh rh-s"></div>
+    <div class="rh rh-e"></div><div class="rh rh-w"></div>
+    <div class="rh rh-ne"></div><div class="rh rh-nw"></div>
+    <div class="rh rh-se"></div><div class="rh rh-sw"></div>
+  `;
+  attachWindowInteractions(el, guide.file);
+  return el;
+}
+
+function attachWindowInteractions(el, file) {
+  const chrome = $('.win-chrome', el);
+  chrome.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.win-btn')) return;
+    focusWindow(file);
+    startDrag(file, e);
+  });
+  chrome.addEventListener('dblclick', (e) => {
+    if (e.target.closest('.win-btn')) return;
+    toggleMaximize(file);
+  });
+  el.addEventListener('mousedown', () => focusWindow(file));
+
+  $$('.win-btn', el).forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const act = btn.dataset.act;
+      if (act === 'close') closeWindow(file);
+      else if (act === 'min') minimizeWindow(file);
+      else if (act === 'max') toggleMaximize(file);
+    });
+  });
+
+  $$('.rh', el).forEach(h => {
+    const dir = h.className.replace('rh rh-','');
+    h.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      focusWindow(file);
+      startResize(file, dir, e);
+    });
+  });
+
+  // Forward keyboard events from iframe to parent for Ctrl+Arrow snap.
+  const iframe = $('iframe', el);
+  iframe.addEventListener('load', () => {
+    try {
+      const doc = iframe.contentDocument;
+      if (!doc) return;
+      doc.addEventListener('mousedown', () => focusWindow(file));
+      doc.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+          handleKeyboardSnap(file, e);
+          e.preventDefault();
+        }
+      });
+    } catch (_) { /* cross-origin */ }
+  });
+}
+
+/* ------------------------------ Focus ------------------------------ */
+function focusWindow(file) {
+  const w = state.windows.get(file);
+  if (!w || w.state.closed) return;
+  state.zCounter += 1;
+  w.el.style.zIndex = state.zCounter;
+  if (state.focused !== file) {
+    if (state.focused) {
+      const prev = state.windows.get(state.focused);
+      if (prev) prev.el.classList.remove('focused');
+    }
+    w.el.classList.add('focused');
+    state.focused = file;
+    renderTaskbar();
+  }
+}
+
+/* ------------------------------- Drag ------------------------------- */
+let dragCtx = null;
+function startDrag(file, e) {
+  const w = state.windows.get(file);
+  if (!w || w.state.maximized) return;
+  dragCtx = {
+    file,
+    startX: e.clientX, startY: e.clientY,
+    origX: w.state.x, origY: w.state.y,
+    nextX: w.state.x, nextY: w.state.y,
+    lastPointerX: e.clientX, lastPointerY: e.clientY,
+    raf: null,
+  };
+  w.el.classList.add('dragging');
+  $('.win-chrome', w.el).classList.add('grabbing');
+  document.body.style.cursor = 'grabbing';
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd, { once: true });
+}
+function onDragMove(e) {
+  if (!dragCtx) return;
+  const w = state.windows.get(dragCtx.file);
+  if (!w) return;
+  const vp = viewportBox();
+  const dx = e.clientX - dragCtx.startX;
+  const dy = e.clientY - dragCtx.startY;
+  dragCtx.nextX = clamp(dragCtx.origX + dx, -w.state.w + 50, vp.w - 50);
+  dragCtx.nextY = clamp(dragCtx.origY + dy, 0, vp.h - 30);
+  dragCtx.lastPointerX = e.clientX;
+  dragCtx.lastPointerY = e.clientY;
+  if (!dragCtx.raf) {
+    dragCtx.raf = requestAnimationFrame(() => {
+      if (!dragCtx) return;
+      w.el.style.transform = `translate3d(${dragCtx.nextX}px, ${dragCtx.nextY}px, 0)`;
+      w.el.style.setProperty('--tx', dragCtx.nextX + 'px');
+      w.el.style.setProperty('--ty', dragCtx.nextY + 'px');
+      updateSnapPreview(dragCtx.lastPointerX, dragCtx.lastPointerY);
+      dragCtx.raf = null;
+    });
+  }
+}
+function onDragEnd(e) {
+  if (!dragCtx) return;
+  const w = state.windows.get(dragCtx.file);
+  if (w) {
+    w.state.x = dragCtx.nextX;
+    w.state.y = dragCtx.nextY;
+    w.el.classList.remove('dragging');
+    $('.win-chrome', w.el).classList.remove('grabbing');
+    const snap = detectSnapZone(e.clientX, e.clientY);
+    if (snap) applySnap(dragCtx.file, snap);
+  }
+  hideSnapPreview();
+  document.body.style.cursor = '';
+  document.removeEventListener('mousemove', onDragMove);
+  dragCtx = null;
+  persistWindows();
+}
+
+/* -------------------------------- Snap -------------------------------- */
+const SNAP_EDGE = 24;
+function detectSnapZone(x, y) {
+  const vp = viewportBox();
+  const nearL = x < SNAP_EDGE;
+  const nearR = x > vp.w - SNAP_EDGE;
+  const nearT = y < SNAP_EDGE;
+  const nearB = y > vp.h - SNAP_EDGE;
+  if (nearT && nearL) return 'tl';
+  if (nearT && nearR) return 'tr';
+  if (nearB && nearL) return 'bl';
+  if (nearB && nearR) return 'br';
+  if (nearT) return 'max';
+  if (nearL) return 'left';
+  if (nearR) return 'right';
+  return null;
+}
+function snapGeom(zone) {
+  const vp = viewportBox(); const W = vp.w, H = vp.h;
+  switch (zone) {
+    case 'left':  return { x: 0,           y: 0,           w: Math.floor(W/2), h: H };
+    case 'right': return { x: Math.ceil(W/2), y: 0,        w: Math.floor(W/2), h: H };
+    case 'max':   return { x: 0, y: 0, w: W, h: H };
+    case 'tl':    return { x: 0,           y: 0,           w: Math.floor(W/2), h: Math.floor(H/2) };
+    case 'tr':    return { x: Math.ceil(W/2), y: 0,        w: Math.floor(W/2), h: Math.floor(H/2) };
+    case 'bl':    return { x: 0,           y: Math.ceil(H/2), w: Math.floor(W/2), h: Math.floor(H/2) };
+    case 'br':    return { x: Math.ceil(W/2), y: Math.ceil(H/2), w: Math.floor(W/2), h: Math.floor(H/2) };
+  }
+  return null;
+}
+function applySnap(file, zone) {
+  const w = state.windows.get(file);
+  if (!w) return;
+  if (zone === 'max') { if (!w.state.maximized) toggleMaximize(file); return; }
+  const g = snapGeom(zone);
+  if (!g) return;
+  w.state.maximized = false;
+  w.state.preMax = null;
+  w.state.x = g.x; w.state.y = g.y; w.state.w = g.w; w.state.h = g.h;
+  w.el.classList.add('snap-anim');
+  w.el.style.width  = g.w + 'px';
+  w.el.style.height = g.h + 'px';
+  w.el.style.transform = `translate3d(${g.x}px, ${g.y}px, 0)`;
+  w.el.style.setProperty('--tx', g.x + 'px');
+  w.el.style.setProperty('--ty', g.y + 'px');
+  setTimeout(() => w.el.classList.remove('snap-anim'), 240);
+  persistWindows();
+}
+
+let snapEl = null;
+function ensureSnapEl() {
+  if (!snapEl) { snapEl = document.createElement('div'); snapEl.className = 'snap-overlay'; document.body.appendChild(snapEl); }
+  return snapEl;
+}
+function updateSnapPreview(x, y) {
+  const zone = detectSnapZone(x, y);
+  if (!zone) { hideSnapPreview(); return; }
+  const g = snapGeom(zone);
+  if (!g) return;
+  const el = ensureSnapEl();
+  el.style.left = g.x + 'px';
+  el.style.top  = g.y + 'px';
+  el.style.width  = g.w + 'px';
+  el.style.height = g.h + 'px';
+  el.classList.add('show');
+}
+function hideSnapPreview() { if (snapEl) snapEl.classList.remove('show'); }
+
+/* ------------------------------- Resize ------------------------------- */
+let resizeCtx = null;
+function startResize(file, dir, e) {
+  const w = state.windows.get(file);
+  if (!w || w.state.maximized) return;
+  resizeCtx = {
+    file, dir,
+    startX: e.clientX, startY: e.clientY,
+    origX: w.state.x, origY: w.state.y,
+    origW: w.state.w, origH: w.state.h,
+    raf: null, next: null,
+  };
+  w.el.classList.add('resizing');
+  w.el.style.willChange = 'width, height, transform';
+  document.addEventListener('mousemove', onResizeMove);
+  document.addEventListener('mouseup', onResizeEnd, { once: true });
+}
+function onResizeMove(e) {
+  if (!resizeCtx) return;
+  const w = state.windows.get(resizeCtx.file);
+  if (!w) return;
+  const dx = e.clientX - resizeCtx.startX;
+  const dy = e.clientY - resizeCtx.startY;
+  let nx = resizeCtx.origX, ny = resizeCtx.origY;
+  let nw = resizeCtx.origW, nh = resizeCtx.origH;
+  const dir = resizeCtx.dir;
+  if (dir.includes('e')) nw = Math.max(400, resizeCtx.origW + dx);
+  if (dir.includes('s')) nh = Math.max(300, resizeCtx.origH + dy);
+  if (dir.includes('w')) {
+    nw = Math.max(400, resizeCtx.origW - dx);
+    nx = resizeCtx.origX + (resizeCtx.origW - nw);
+  }
+  if (dir.includes('n')) {
+    nh = Math.max(300, resizeCtx.origH - dy);
+    ny = resizeCtx.origY + (resizeCtx.origH - nh);
+  }
+  resizeCtx.next = { nx, ny, nw, nh };
+  if (!resizeCtx.raf) {
+    resizeCtx.raf = requestAnimationFrame(() => {
+      if (!resizeCtx) return;
+      const n = resizeCtx.next;
+      w.el.style.width  = n.nw + 'px';
+      w.el.style.height = n.nh + 'px';
+      w.el.style.transform = `translate3d(${n.nx}px, ${n.ny}px, 0)`;
+      w.el.style.setProperty('--tx', n.nx + 'px');
+      w.el.style.setProperty('--ty', n.ny + 'px');
+      resizeCtx.raf = null;
+    });
+  }
+}
+function onResizeEnd() {
+  if (!resizeCtx) return;
+  const w = state.windows.get(resizeCtx.file);
+  if (w && resizeCtx.next) {
+    const n = resizeCtx.next;
+    w.state.x = n.nx; w.state.y = n.ny; w.state.w = n.nw; w.state.h = n.nh;
+    w.el.classList.remove('resizing');
+    setTimeout(() => { if (w.el) w.el.style.willChange = ''; }, 500);
+  }
+  document.removeEventListener('mousemove', onResizeMove);
+  resizeCtx = null;
+  persistWindows();
+}
+
+/* ------------------ Minimize / maximize / close ------------------ */
+function minimizeWindow(file) {
+  const w = state.windows.get(file);
+  if (!w) return;
+  w.state.minimized = true;
+  w.el.classList.add('minimized');
+  if (state.focused === file) state.focused = null;
+  w.el.classList.remove('focused');
+  renderTaskbar();
+  syncCardOpenStates();
+  persistWindows();
+}
+function restoreWindow(file) {
+  const w = state.windows.get(file);
+  if (!w) return;
+  w.state.minimized = false;
+  w.el.classList.remove('minimized');
+  focusWindow(file);
+  renderTaskbar();
+  syncCardOpenStates();
+  persistWindows();
+}
+function toggleMaximize(file) {
+  const w = state.windows.get(file);
+  if (!w) return;
+  if (w.state.maximized) {
+    const p = w.state.preMax;
+    if (p) {
+      w.state.x = p.x; w.state.y = p.y; w.state.w = p.w; w.state.h = p.h;
+      w.el.style.width = p.w + 'px';
+      w.el.style.height = p.h + 'px';
+      w.el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
+      w.el.style.setProperty('--tx', p.x + 'px');
+      w.el.style.setProperty('--ty', p.y + 'px');
+    }
+    w.state.maximized = false;
+    w.state.preMax = null;
+  } else {
+    w.state.preMax = { x: w.state.x, y: w.state.y, w: w.state.w, h: w.state.h };
+    const vp = viewportBox();
+    w.state.x = 0; w.state.y = 0; w.state.w = vp.w; w.state.h = vp.h;
+    w.el.style.width = vp.w + 'px';
+    w.el.style.height = vp.h + 'px';
+    w.el.style.transform = 'translate3d(0,0,0)';
+    w.el.style.setProperty('--tx', '0px');
+    w.el.style.setProperty('--ty', '0px');
+    w.state.maximized = true;
+  }
+  w.el.classList.add('snap-anim');
+  setTimeout(() => w.el.classList.remove('snap-anim'), 240);
+  persistWindows();
+}
+function closeWindow(file) {
+  const w = state.windows.get(file);
+  if (!w) return;
+  w.state.closed = true;
+  w.el.classList.add('closing');
+  w.el.addEventListener('animationend', () => {
+    if (w.el.parentNode) w.el.remove();
+    state.windows.delete(file);
+    if (state.focused === file) state.focused = null;
+    renderTaskbar();
+    syncCardOpenStates();
+    persistWindows();
+  }, { once: true });
+}
+
+/* ------------------------------ Taskbar ------------------------------ */
+function renderTaskbar() {
+  const host = $('#taskbar-items');
+  host.innerHTML = '';
+  for (const [file, w] of state.windows) {
+    if (w.state.closed) continue;
+    const b = document.createElement('div');
+    b.className = 'taskbar-item'
+      + (state.focused === file && !w.state.minimized ? ' active' : '')
+      + (w.state.minimized ? ' minimized' : '');
+    b.innerHTML = `<span>${w.guide.icon}</span><span>${w.guide.title}</span>`;
+    b.title = w.guide.title + ' (right-click to close)';
+    b.addEventListener('click', () => {
+      if (w.state.minimized) restoreWindow(file);
+      else if (state.focused === file) minimizeWindow(file);
+      else focusWindow(file);
+    });
+    b.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      closeWindow(file);
+    });
+    host.appendChild(b);
+  }
+}
+
+/* ------------------------------ Clock ------------------------------ */
+function updateClock() {
+  const d = new Date();
+  $('#clock').textContent = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+/* --------------------------- Context menu --------------------------- */
+let ctxEl = null;
+function closeCtxMenu() { if (ctxEl) { ctxEl.remove(); ctxEl = null; } }
+function openCtxMenu(x, y) {
+  closeCtxMenu();
+  ctxEl = document.createElement('div');
+  ctxEl.className = 'ctx-menu';
+  const items = [
+    ['Tile All Open', tileAll],
+    ['Cascade',       cascadeAll],
+    ['Minimize All',  minimizeAll],
+    ['Close All',     closeAll],
+    ['sep'],
+    [(state.blur ? '\u2713 ' : '') + 'Enable backdrop blur', toggleBlur],
+    ['sep'],
+    ['Reset Layout',  resetLayout],
+  ];
+  for (const it of items) {
+    if (it[0] === 'sep') {
+      const s = document.createElement('div'); s.className = 'ctx-menu-sep'; ctxEl.appendChild(s);
+    } else {
+      const d = document.createElement('div');
+      d.className = 'ctx-menu-item';
+      d.textContent = it[0];
+      d.addEventListener('click', () => { it[1](); closeCtxMenu(); });
+      ctxEl.appendChild(d);
+    }
+  }
+  ctxEl.style.visibility = 'hidden';
+  document.body.appendChild(ctxEl);
+  const mw = ctxEl.offsetWidth, mh = ctxEl.offsetHeight;
+  ctxEl.style.left = Math.min(x, window.innerWidth - mw - 8) + 'px';
+  ctxEl.style.top  = Math.min(y, window.innerHeight - mh - 8) + 'px';
+  ctxEl.style.visibility = 'visible';
+}
+document.addEventListener('contextmenu', (e) => {
+  if (IS_MOBILE()) return;
+  if (e.target.closest('.win') || e.target.closest('.taskbar-item')) return;
+  e.preventDefault();
+  openCtxMenu(e.clientX, e.clientY);
+});
+document.addEventListener('click', (e) => {
+  if (ctxEl && !e.target.closest('.ctx-menu')) closeCtxMenu();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeCtxMenu();
+});
+
+/* ------------------------ Context menu actions ------------------------ */
+function tileAll() {
+  const open = [...state.windows.entries()].filter(([,w]) => !w.state.closed && !w.state.minimized);
+  const n = open.length;
+  if (!n) return;
+  const vp = viewportBox();
+  const cols = Math.ceil(Math.sqrt(n));
+  const rows = Math.ceil(n / cols);
+  const cw = Math.floor(vp.w / cols);
+  const ch = Math.floor(vp.h / rows);
+  open.forEach(([file, w], i) => {
+    const c = i % cols, r = Math.floor(i / cols);
+    const x = c * cw, y = r * ch;
+    w.state.x = x; w.state.y = y; w.state.w = cw; w.state.h = ch;
+    w.state.maximized = false; w.state.preMax = null;
+    w.el.classList.add('snap-anim');
+    w.el.style.width = cw + 'px';
+    w.el.style.height = ch + 'px';
+    w.el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    w.el.style.setProperty('--tx', x + 'px');
+    w.el.style.setProperty('--ty', y + 'px');
+    setTimeout(() => w.el.classList.remove('snap-anim'), 240);
+  });
+  persistWindows();
+}
+function cascadeAll() {
+  const open = [...state.windows.entries()].filter(([,w]) => !w.state.closed && !w.state.minimized);
+  const vp = viewportBox();
+  const bw = Math.round(vp.w * 0.6);
+  const bh = Math.round(vp.h * 0.65);
+  open.forEach(([file, w], i) => {
+    const off = i * 30;
+    const x = 40 + off, y = 20 + off;
+    w.state.x = x; w.state.y = y; w.state.w = bw; w.state.h = bh;
+    w.state.maximized = false; w.state.preMax = null;
+    w.el.classList.add('snap-anim');
+    w.el.style.width = bw + 'px';
+    w.el.style.height = bh + 'px';
+    w.el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    w.el.style.setProperty('--tx', x + 'px');
+    w.el.style.setProperty('--ty', y + 'px');
+    setTimeout(() => w.el.classList.remove('snap-anim'), 240);
+    focusWindow(file);
+  });
+  persistWindows();
+}
+function minimizeAll() {
+  for (const [file, w] of state.windows) {
+    if (!w.state.closed && !w.state.minimized) minimizeWindow(file);
+  }
+}
+function closeAll() {
+  [...state.windows.keys()].forEach(f => closeWindow(f));
+}
+function toggleBlur() {
+  state.blur = !state.blur;
+  $('#desktop').classList.toggle('blur', state.blur);
+  save(LS.BLUR, state.blur);
+}
+function resetLayout() {
+  closeAll();
+  localStorage.removeItem(LS.ORDER);
+  localStorage.removeItem(LS.WIN);
+  localStorage.removeItem(LS.BLUR);
+  state.blur = false;
+  $('#desktop').classList.remove('blur');
+  renderCards();
+}
+
+/* --------------------------- Keyboard snap --------------------------- */
+function handleKeyboardSnap(file, e) {
+  const arrow = e.key;
+  if (e.shiftKey) {
+    if (arrow === 'ArrowLeft')  applySnap(file, 'tl');
+    else if (arrow === 'ArrowRight') applySnap(file, 'tr');
+  } else if (e.altKey) {
+    if (arrow === 'ArrowLeft')  applySnap(file, 'bl');
+    else if (arrow === 'ArrowRight') applySnap(file, 'br');
+  } else {
+    if (arrow === 'ArrowLeft')       applySnap(file, 'left');
+    else if (arrow === 'ArrowRight') applySnap(file, 'right');
+    else if (arrow === 'ArrowUp')    { if (!state.windows.get(file).state.maximized) toggleMaximize(file); }
+    else if (arrow === 'ArrowDown')  {
+      const w = state.windows.get(file);
+      if (w && w.state.maximized) toggleMaximize(file);
+      else minimizeWindow(file);
+    }
+  }
+}
+document.addEventListener('keydown', (e) => {
+  if (!state.focused) return;
+  if (!e.ctrlKey) return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) return;
+  e.preventDefault();
+  handleKeyboardSnap(state.focused, e);
+});
+
+/* ---------------------------- Persistence ---------------------------- */
+function persistWindows() {
+  const arr = [];
+  for (const [file, w] of state.windows) {
+    if (w.state.closed) continue;
+    arr.push({
+      file, x: w.state.x, y: w.state.y, w: w.state.w, h: w.state.h,
+      minimized: w.state.minimized, maximized: w.state.maximized, preMax: w.state.preMax
+    });
+  }
+  save(LS.WIN, arr);
+}
+function restoreSession() {
+  const blur = load(LS.BLUR, false);
+  if (blur) { state.blur = true; $('#desktop').classList.add('blur'); }
+  if (IS_MOBILE()) return;
+
+  const saved = load(LS.WIN, []);
+  const vp = viewportBox();
+  for (const s of saved.slice(0, MAX_WINDOWS)) {
+    const guide = GUIDES.find(g => g.file === s.file);
+    if (!guide) continue;
+    const w = clamp(s.w || 800, 400, vp.w);
+    const h = clamp(s.h || 600, 300, vp.h);
+    const x = clamp(s.x ?? 60, -w + 50, vp.w - 50);
+    const y = clamp(s.y ?? 40, 0, vp.h - 30);
+    const el = createWindowEl(guide, { x, y, w, h });
+    document.body.appendChild(el);
+    state.windows.set(s.file, {
+      el, guide,
+      state: {
+        x, y, w, h,
+        minimized: !!s.minimized,
+        maximized: !!s.maximized,
+        preMax: s.preMax || null,
+        closed: false
+      }
+    });
+    if (s.minimized) el.classList.add('minimized');
+    if (s.maximized) {
+      el.style.width = vp.w + 'px';
+      el.style.height = vp.h + 'px';
+      el.style.transform = 'translate3d(0,0,0)';
+    }
+  }
+  syncCardOpenStates();
+  renderTaskbar();
+}
+
+/* -------------------- Viewport resize -------------------- */
+window.addEventListener('resize', () => {
+  const vp = viewportBox();
+  for (const [file, w] of state.windows) {
+    if (w.state.maximized) {
+      w.state.w = vp.w; w.state.h = vp.h;
+      w.el.style.width = vp.w + 'px';
+      w.el.style.height = vp.h + 'px';
+    } else {
+      w.state.x = clamp(w.state.x, -w.state.w + 50, vp.w - 50);
+      w.state.y = clamp(w.state.y, 0, vp.h - 30);
+      w.el.style.transform = `translate3d(${w.state.x}px, ${w.state.y}px, 0)`;
+      w.el.style.setProperty('--tx', w.state.x + 'px');
+      w.el.style.setProperty('--ty', w.state.y + 'px');
+    }
+  }
+});
+
+/* ------------------------------- Init ------------------------------- */
+renderCards();
+restoreSession();
+updateClock();
+setInterval(updateClock, 60000);
+</script>
 </body>
 </html>

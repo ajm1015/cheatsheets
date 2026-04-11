@@ -382,6 +382,68 @@
     .header, .content, .search-wrap, .cat-nav, .footer { padding-left: 12px; padding-right: 12px; }
     .keys { min-width: 90px; }
   }
+
+  /* ─────────── Command Palette ─────────── */
+  .cmdp-overlay {
+    display: none; position: fixed; inset: 0; z-index: 10000;
+    background: rgba(62,50,96,0.5);
+    align-items: flex-start; justify-content: center;
+    padding-top: 10vh;
+  }
+  .cmdp-overlay.show { display: flex; }
+  .cmdp {
+    width: min(660px, 92vw); max-height: 70vh;
+    background: var(--panel-light); border: 2px solid var(--shadow-deep);
+    box-shadow: var(--bevel-out), 0 24px 80px rgba(0,0,0,0.4);
+    display: flex; flex-direction: column;
+    font-family: var(--mono); color: var(--text);
+  }
+  .cmdp-input-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-bottom: 1px solid var(--shadow);
+    background: var(--panel);
+  }
+  .cmdp-prompt { color: var(--purple); font-weight: 700; font-size: 14px; }
+  .cmdp-input {
+    flex: 1; background: transparent; border: 0; outline: 0;
+    color: var(--text); font-family: var(--mono); font-size: 13px;
+  }
+  .cmdp-input::placeholder { color: var(--text-dim); }
+  .cmdp-hint {
+    font-size: 9px; color: var(--text-dim); padding: 2px 6px;
+    border: 1px solid var(--shadow); letter-spacing: 1px; background: var(--panel);
+  }
+  .cmdp-results { flex: 1; overflow-y: auto; padding: 4px 0; background: var(--panel-light); }
+  .cmdp-row {
+    padding: 8px 16px; cursor: pointer;
+    border-left: 3px solid transparent;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .cmdp-row:hover, .cmdp-row.active {
+    background: rgba(123,97,255,0.08); border-left-color: var(--purple-bright);
+  }
+  .cmdp-row-desc { font-size: 12px; color: var(--text); flex: 1; font-family: var(--sans); }
+  .cmdp-row-cat {
+    font-size: 8px; padding: 1px 6px; border: 1px solid var(--shadow);
+    color: var(--purple); letter-spacing: 1px; text-transform: uppercase;
+    background: rgba(123,97,255,0.06); flex-shrink: 0;
+  }
+  .cmdp-empty {
+    padding: 24px 16px; text-align: center; color: var(--text-dim); font-size: 11px; font-family: var(--sans);
+  }
+  .cmdp-foot {
+    display: flex; gap: 14px; align-items: center;
+    padding: 8px 16px; border-top: 1px solid var(--shadow);
+    background: var(--panel);
+    font-size: 9px; color: var(--text-dim); letter-spacing: 0.5px; font-family: var(--sans);
+  }
+  .cmdp-foot kbd {
+    font-family: var(--mono); padding: 1px 5px;
+    border: 1px solid var(--shadow); color: var(--purple); font-size: 9px;
+  }
+  .cmdp-foot-spacer { flex: 1; }
+  .cmdp-count { color: var(--purple); }
+  .cmdp-flash-row { background: rgba(123,97,255,0.12) !important; transition: background 500ms; }
 </style>
 </head>
 <body>
@@ -773,6 +835,18 @@ const DATA = [
       { k: ["Shift","Click"], d: "Open link in new window" },
     ]
   },
+  {
+    id: "hidden", icon: "👻", label: "Hidden / Undocumented",
+    items: [
+      { sub: "Hidden Keyboard Shortcuts" },
+      { k: ["Win","Alt","K"], d: "Microphone mute toggle (system-wide)", t: "win11" },
+      { k: ["Shift","Right-click file"], d: "Extended context menu including 'Copy as path'" },
+      { k: ["Shift","Right-click folder background"], d: "Reveal 'Open Terminal here' option" },
+      { k: ["Ctrl","Shift","N"], d: "Create new folder in Save/Open dialog" },
+      { k: ["Alt","Space","S"], d: "Enter keyboard resize mode for active window" },
+      { k: ["Ctrl","Shift","Click taskbar"], d: "Launch taskbar app as Administrator", t: "admin" },
+    ]
+  },
 ];
 
 // ── Render ──
@@ -911,7 +985,7 @@ const DATA = [
 
   // ── Keyboard shortcuts ──
   document.addEventListener('keydown', e => {
-    if (e.key === '/' && document.activeElement !== searchInput) {
+    if (e.key === '/' && document.activeElement !== searchInput && !cmdpOpen()) {
       e.preventDefault();
       searchInput.focus();
     }
@@ -919,6 +993,118 @@ const DATA = [
       searchInput.blur();
       searchInput.value = '';
       searchInput.dispatchEvent(new Event('input'));
+    }
+  });
+
+  // ── Command Palette ──
+  const cmdpEl = document.createElement('div');
+  cmdpEl.className = 'cmdp-overlay';
+  cmdpEl.innerHTML =
+    '<div class="cmdp">' +
+    '<div class="cmdp-input-row">' +
+    '<span class="cmdp-prompt">&#62;</span>' +
+    '<input type="text" class="cmdp-input" id="cmdp-input" placeholder="Type to search shortcuts\u2026" autocomplete="off" spellcheck="false">' +
+    '<span class="cmdp-hint">ESC</span>' +
+    '</div>' +
+    '<div class="cmdp-results" id="cmdp-results"></div>' +
+    '<div class="cmdp-foot">' +
+    '<span><kbd>&#8593;&#8595;</kbd> navigate</span><span><kbd>&#8629;</kbd> jump</span>' +
+    '<span class="cmdp-foot-spacer"></span>' +
+    '<span class="cmdp-count" id="cmdp-count"></span>' +
+    '</div></div>';
+  document.body.appendChild(cmdpEl);
+
+  const cmdpOverlay = cmdpEl;
+  const cmdpInput = document.getElementById('cmdp-input');
+  const cmdpResults = document.getElementById('cmdp-results');
+  const cmdpCount = document.getElementById('cmdp-count');
+  const cmdpOpen = () => cmdpOverlay.classList.contains('show');
+  let cmdpIdx = 0, cmdpRows = [];
+
+  const palIndex = [];
+  DATA.forEach(cat => {
+    cat.items.filter(it => it.k).forEach(it => {
+      palIndex.push({
+        desc: it.d, keys: it.k.join('+'), cat: cat.label,
+        hay: (it.d + ' ' + cat.label + ' ' + it.k.join(' ')).toLowerCase()
+      });
+    });
+  });
+
+  function palFuzzy(q, text) {
+    const ql = q.toLowerCase(), tl = text.toLowerCase();
+    if (tl.includes(ql)) return 100;
+    let qi = 0, score = 0, consec = 0;
+    for (let i = 0; i < tl.length && qi < ql.length; i++) {
+      if (tl[i] === ql[qi]) { score += 1 + consec * 5; consec++; qi++; }
+      else consec = 0;
+    }
+    return qi < ql.length ? 0 : score + 50;
+  }
+
+  function cmdpRender() {
+    const q = cmdpInput.value.trim();
+    cmdpResults.innerHTML = '';
+    if (!q) {
+      cmdpResults.innerHTML = '<div class="cmdp-empty">Type to search ' + palIndex.length + ' shortcuts</div>';
+      cmdpCount.textContent = ''; cmdpRows = []; return;
+    }
+    const scored = palIndex
+      .map(it => ({ it, score: palFuzzy(q, it.hay) }))
+      .filter(s => s.score >= 20)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 15);
+    cmdpRows = scored.map(s => s.it);
+    cmdpCount.textContent = scored.length;
+    if (!scored.length) { cmdpResults.innerHTML = '<div class="cmdp-empty">No matches</div>'; return; }
+    const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    scored.forEach((s, i) => {
+      const row = document.createElement('div');
+      row.className = 'cmdp-row' + (i === 0 ? ' active' : '');
+      row.innerHTML =
+        '<span class="cmdp-row-desc">' + esc(s.it.desc) + '</span>' +
+        '<span class="cmdp-row-cat">' + esc(s.it.cat) + '</span>';
+      row.addEventListener('click', () => cmdpActivate(i));
+      row.addEventListener('mouseenter', () => { cmdpIdx = i; cmdpHighlight(); });
+      cmdpResults.appendChild(row);
+    });
+    cmdpIdx = 0;
+  }
+  function cmdpHighlight() {
+    Array.from(cmdpResults.children).forEach((c, i) => c.classList.toggle('active', i === cmdpIdx));
+    if (cmdpResults.children[cmdpIdx]) cmdpResults.children[cmdpIdx].scrollIntoView({ block: 'nearest' });
+  }
+  function cmdpActivate(i) {
+    const it = cmdpRows[i];
+    if (!it) return;
+    cmdpClose();
+    const allRows = content.querySelectorAll('.shortcut-row');
+    for (const row of allRows) {
+      if ((row.dataset.keywords || '').includes(it.desc.slice(0, 25).toLowerCase())) {
+        const sec = row.closest('.section');
+        if (sec) sec.classList.remove('hidden');
+        row.classList.remove('hidden');
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.classList.add('cmdp-flash-row');
+        setTimeout(() => row.classList.remove('cmdp-flash-row'), 600);
+        break;
+      }
+    }
+  }
+  function cmdpShow() { cmdpOverlay.classList.add('show'); cmdpInput.value = ''; cmdpRender(); setTimeout(() => cmdpInput.focus(), 0); }
+  function cmdpClose() { cmdpOverlay.classList.remove('show'); }
+  cmdpInput.addEventListener('input', cmdpRender);
+  cmdpInput.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); if (cmdpIdx < cmdpRows.length - 1) { cmdpIdx++; cmdpHighlight(); } }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); if (cmdpIdx > 0) { cmdpIdx--; cmdpHighlight(); } }
+    else if (e.key === 'Enter') { e.preventDefault(); cmdpActivate(cmdpIdx); }
+    else if (e.key === 'Escape') { e.preventDefault(); cmdpClose(); }
+  });
+  cmdpOverlay.addEventListener('click', e => { if (e.target === cmdpOverlay) cmdpClose(); });
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      if (cmdpOpen()) cmdpClose(); else cmdpShow();
     }
   });
 })();
