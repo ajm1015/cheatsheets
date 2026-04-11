@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(ls -la /c/Users/jack/cheatsheets/*.html)",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(awk '{printf \"%s %dK %s\\\\n\", $2, int\\(\\($1+512\\)/1024\\), $2}')",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  },
+  "outputStyle": "Explanatory"
+}
