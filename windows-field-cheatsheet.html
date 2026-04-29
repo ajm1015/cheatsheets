@@ -521,6 +521,7 @@
   <button class="cat-btn" data-cat="ref">QUICK REFERENCE</button>
   <button class="cat-btn" data-cat="forensics">FORENSICS</button>
   <button class="cat-btn" data-cat="fleet">REMOTE / FLEET</button>
+  <button class="cat-btn" data-cat="security">SECURITY / DEFENDER</button>
 </nav>
 
 <div class="content" id="content">
@@ -823,10 +824,133 @@ $checks | Format-Table -AutoSize</pre>
 
 <span class="comment"># Fix: rename .bak key to remove the suffix</span>
 <span class="comment"># 1. If both S-1-5-21-xxx and S-1-5-21-xxx.bak exist:</span>
-<span class="comment">#    - Rename S-1-5-21-xxx → S-1-5-21-xxx.old</span>
-<span class="comment">#    - Rename S-1-5-21-xxx.bak → S-1-5-21-xxx</span>
+<span class="comment">#    - Rename S-1-5-21-xxx -&gt; S-1-5-21-xxx.old</span>
+<span class="comment">#    - Rename S-1-5-21-xxx.bak -&gt; S-1-5-21-xxx</span>
 <span class="comment">#    - In the renamed key, set State = 0, RefCount = 0</span>
 <span class="comment"># 2. Reboot</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="wsl windows subsystem linux list shutdown update distro version export import">
+      <div class="entry-header"><span class="entry-title">WSL Health &amp; Reset</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Inspect installed WSL distros, force-stop misbehaving ones, update the kernel, or recover a broken VM. ADMIN for --update.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># Installed distros and version (1 vs 2)</span>
+<span class="cmd">wsl</span> <span class="flag">--list --verbose</span>
+
+<span class="comment"># Stop every distro and the WSL service</span>
+<span class="cmd">wsl</span> <span class="flag">--shutdown</span>
+
+<span class="comment"># Update the WSL2 kernel (ADMIN)</span>
+<span class="cmd">wsl</span> <span class="flag">--update</span>
+
+<span class="comment"># Reset / unregister a stuck distro (DESTRUCTIVE - wipes the VM disk)</span>
+<span class="cmd">wsl</span> <span class="flag">--unregister</span> Ubuntu</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="smb shares list local mounted connections net use get-smbshare get-smbconnection">
+      <div class="entry-header"><span class="entry-title">SMB Shares &amp; Sessions</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Local shared folders, plus what's currently mounted from elsewhere. Useful when an app says "share is unavailable" but the path looks fine.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># Local shares this machine exposes (ADMIN for full detail)</span>
+<span class="cmd">Get-SmbShare</span>
+
+<span class="comment"># Active outbound SMB sessions from this machine</span>
+<span class="cmd">Get-SmbConnection</span>
+
+<span class="comment"># Map a share for the current user (no password caching)</span>
+<span class="cmd">net use</span> Z: \\fileserver\share <span class="flag">/persistent:</span>no</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="smb1 disable feature windowsfeature legacy security cve">
+      <div class="entry-header"><span class="entry-title">Disable SMB1 (Legacy Insecure Protocol)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">SMB1 is unauthenticated and exploitable (WannaCry, NotPetya). Disable on every modern endpoint. ADMIN.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># Check whether SMB1 is enabled</span>
+<span class="cmd">Get-WindowsOptionalFeature</span> <span class="flag">-Online -FeatureName</span> SMB1Protocol
+
+<span class="comment"># Disable + remove the feature (reboot required)</span>
+<span class="cmd">Disable-WindowsOptionalFeature</span> <span class="flag">-Online -FeatureName</span> SMB1Protocol <span class="flag">-Remove</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="bitlocker volume status keyprotector recovery key encryption percentage">
+      <div class="entry-header"><span class="entry-title">BitLocker Volume Status (Detailed)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Full per-volume BitLocker state including key protectors, percentage encrypted, and recovery key escrow status.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-BitLockerVolume</span> |
+  <span class="cmd">Select</span> MountPoint, VolumeStatus, EncryptionPercentage,
+    ProtectionStatus, EncryptionMethod,
+    @{N=<span class="string">'Protectors'</span>;E={($_.KeyProtector | Select -Expand KeyProtectorType) -join <span class="string">','</span>}}</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="bitlocker recovery password backup ad entra azure cloud escrow rotation">
+      <div class="entry-header"><span class="entry-title">BitLocker Recovery Key Escrow</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Force-upload a missing recovery password to AD or Entra. The most common reason a recovery key isn't in the portal: it never escrowed. ADMIN.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># Find the recovery password protector ID for C:</span>
+$id = (Get-BitLockerVolume <span class="flag">-MountPoint</span> C: |
+  <span class="cmd">Select</span> -Expand KeyProtector |
+  <span class="cmd">Where</span> KeyProtectorType <span class="flag">-eq</span> <span class="string">'RecoveryPassword'</span>).KeyProtectorId
+
+<span class="comment"># Backup to Active Directory</span>
+<span class="cmd">Backup-BitLockerKeyProtector</span> <span class="flag">-MountPoint</span> C: <span class="flag">-KeyProtectorId</span> $id
+
+<span class="comment"># Backup to Entra ID (Azure AD-joined devices only)</span>
+<span class="cmd">BackupToAAD-BitLockerKeyProtector</span> <span class="flag">-MountPoint</span> C: <span class="flag">-KeyProtectorId</span> $id</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="windows search index reset rebuild searchindexer corrupted slow">
+      <div class="entry-header"><span class="entry-title">Reset Windows Search Index</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">When Start menu search returns nothing or stale results: stop the indexer, delete the index db, restart. ADMIN.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Stop-Service</span> WSearch <span class="flag">-Force</span>
+<span class="cmd">Remove-Item</span> <span class="string">"$env:ProgramData\Microsoft\Search\Data\Applications\Windows\Windows.edb"</span> <span class="flag">-Force</span>
+<span class="cmd">Start-Service</span> WSearch</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="fast startup hybrid sleep hibernation disable power slow boot">
+      <div class="entry-header"><span class="entry-title">Disable Fast Startup (Hybrid Sleep)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Fast Startup leaves drivers / network stack in a half-sleep state. Disable when chasing weird post-boot networking, dual-boot drift, or BitLocker key issues. ADMIN.</div>
+        <pre><span class="lang-label">CMD</span><span class="cmd">powercfg</span> <span class="flag">/h</span> off
+<span class="cmd">reg add</span> <span class="string">"HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power"</span> <span class="flag">/v</span> HiberbootEnabled <span class="flag">/t</span> REG_DWORD <span class="flag">/d</span> 0 <span class="flag">/f</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="winget windows package manager source list update reset cli">
+      <div class="entry-header"><span class="entry-title">Winget Source / Reset</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">When winget says "no sources defined" or installs hang — re-register the official source. Common after sysprep / Autopilot.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># List sources</span>
+<span class="cmd">winget</span> source list
+
+<span class="comment"># Reset to defaults</span>
+<span class="cmd">winget</span> source reset <span class="flag">--force</span>
+
+<span class="comment"># Re-register manually if reset fails</span>
+<span class="cmd">winget</span> source add <span class="flag">--name</span> winget <span class="flag">--arg</span> https://cdn.winget.microsoft.com/cache</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="time sync w32tm ntp domain hierarchy clock skew kerberos">
+      <div class="entry-header"><span class="entry-title">Time Sync &amp; Skew</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Kerberos breaks at 5+ minute skew. Check current source and force a resync. ADMIN.</div>
+        <pre><span class="lang-label">CMD</span><span class="comment">:: Show current time source and offset</span>
+<span class="cmd">w32tm</span> <span class="flag">/query /status</span>
+
+<span class="comment">:: Force immediate sync</span>
+<span class="cmd">w32tm</span> <span class="flag">/resync /force</span>
+
+<span class="comment">:: Reset to domain hierarchy (domain-joined)</span>
+<span class="cmd">w32tm</span> <span class="flag">/config /syncfromflags:</span>domhier <span class="flag">/update</span>
+<span class="cmd">net stop</span> w32time <span class="flag">&amp;&amp;</span> <span class="cmd">net start</span> w32time</pre>
       </div>
     </div>
   </div>
@@ -911,7 +1035,74 @@ $teamsCache = <span class="string">"$env:APPDATA\Microsoft\Teams"</span>
         <span class="entry-title">Email Headers Access</span>
       </div>
       <div class="entry-body">
-        <div class="entry-desc">New Outlook → right-click message in list → View Source. Classic/Legacy Outlook lacks this — switch to New Outlook.</div>
+        <div class="entry-desc">New Outlook: right-click message in list, View Source. Classic / Legacy Outlook lacks this option -- switch to New Outlook.</div>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="outlook ost size pst location appdata profile bloat">
+      <div class="entry-header"><span class="entry-title">Outlook OST / PST Size &amp; Location</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">When Outlook is slow, OST &gt; 50 GB is usually the cause. Find the file, check size, decide whether to shrink the cache window in Account Settings.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-ChildItem</span> <span class="string">"$env:LOCALAPPDATA\Microsoft\Outlook\*.ost"</span>, <span class="string">"$env:LOCALAPPDATA\Microsoft\Outlook\*.pst"</span> |
+  <span class="cmd">Select</span> Name, @{N=<span class="string">'GB'</span>;E={[math]::Round($_.Length/1GB,2)}}, LastWriteTime |
+  <span class="cmd">Sort</span> GB <span class="flag">-Descending</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="onedrive reset folder sync stuck client appdata personalvault">
+      <div class="entry-header"><span class="entry-title">OneDrive Client Reset</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Re-runs first-sync; the official Microsoft fix for stuck or pending uploads. Files stay on disk; only the sync state resets.</div>
+        <pre><span class="lang-label">CMD</span><span class="cmd">%localappdata%\Microsoft\OneDrive\onedrive.exe</span> <span class="flag">/reset</span>
+
+<span class="comment">:: If the EXE path differs in your install:</span>
+<span class="cmd">%programfiles%\Microsoft OneDrive\onedrive.exe</span> <span class="flag">/reset</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="exchange online powershell connect modules graph mfa">
+      <div class="entry-header"><span class="entry-title">Connect to Exchange Online (Modern Auth)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Modern device-code or browser auth flow. Replaces the legacy "Connect-EXOPSSession" with REST-based EXO V3.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># Install once</span>
+<span class="cmd">Install-Module</span> ExchangeOnlineManagement <span class="flag">-Scope</span> CurrentUser
+
+<span class="comment"># Connect (browser-based)</span>
+<span class="cmd">Connect-ExchangeOnline</span> <span class="flag">-UserPrincipalName</span> admin@tenant.com
+
+<span class="comment"># Disconnect cleanly</span>
+<span class="cmd">Disconnect-ExchangeOnline</span> <span class="flag">-Confirm:</span>$false</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="message trace exchange online sender recipient delivery report failed bounced">
+      <div class="entry-header"><span class="entry-title">Message Trace (Last 7 Days)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">"Did this email arrive?" Trace by sender or recipient. Last 7 days are queryable instantly; older needs a historical trace job.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-MessageTrace</span> <span class="flag">-StartDate</span> (Get-Date).AddDays(-2) <span class="flag">-EndDate</span> (Get-Date) <span class="flag">-RecipientAddress</span> user@domain.com |
+  <span class="cmd">Select</span> Received, SenderAddress, Subject, Status, MessageId |
+  <span class="cmd">Sort</span> Received <span class="flag">-Descending</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="mailbox size folder statistics quota archive online powershell">
+      <div class="entry-header"><span class="entry-title">Mailbox Size &amp; Top Folders</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Why is the mailbox at quota? Find the heavy folders.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-MailboxFolderStatistics</span> user@domain.com |
+  <span class="cmd">Select</span> Name, FolderPath, ItemsInFolder, FolderSize |
+  <span class="cmd">Sort</span> @{E={[int64](($_.FolderSize -split <span class="string">'\('</span>)[1] -replace <span class="string">'[^\d]'</span>)}; D=$true} |
+  <span class="cmd">Select</span> <span class="flag">-First</span> 15</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="teams new client cache reset clear v2 work or school storage">
+      <div class="entry-header"><span class="entry-title">New Teams Cache Reset</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">"New Teams" (the MSIX/v2 client) lives at a different path than Classic. Clear the cache when sign-in loops, missing channels, or stuck presence.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-Process</span> ms-teams <span class="flag">-ErrorAction</span> SilentlyContinue | <span class="cmd">Stop-Process</span> <span class="flag">-Force</span>
+<span class="cmd">Remove-Item</span> <span class="string">"$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache"</span> <span class="flag">-Recurse -Force -ErrorAction</span> SilentlyContinue
+<span class="cmd">Start-Process</span> <span class="string">"ms-teams:"</span></pre>
       </div>
     </div>
   </div>
@@ -1059,6 +1250,117 @@ Get-ScheduledTask | Where-Object { $_.TaskName -match <span class="string">'Push
       <div class="entry-body">
         <pre><span class="lang-label">POWERSHELL</span><span class="cmd">Get-MpComputerStatus</span> | Select-Object AntivirusEnabled, RealTimeProtectionEnabled,
     AntivirusSignatureLastUpdated, QuickScanEndTime, FullScanEndTime</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="active directory user lastlogondate stale 90 days disabled accounts">
+      <div class="entry-header"><span class="entry-title">Stale AD Users (90+ Days)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Active accounts that haven't logged on in 90 days. RSAT-AD-PowerShell required. Domain-joined or DC.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-ADUser</span> <span class="flag">-Filter</span> { Enabled <span class="flag">-eq</span> $true } <span class="flag">-Properties</span> LastLogonDate, Title, Department |
+  <span class="cmd">Where</span> { $_.LastLogonDate <span class="flag">-and</span> $_.LastLogonDate <span class="flag">-lt</span> (Get-Date).AddDays(-90) } |
+  <span class="cmd">Select</span> Name, SamAccountName, LastLogonDate, Title, Department |
+  <span class="cmd">Sort</span> LastLogonDate</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="ad group members recursive nested expand transitive">
+      <div class="entry-header"><span class="entry-title">Recursive AD Group Membership</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">All effective members of a group, expanded through every nested group. RSAT required.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-ADGroupMember</span> <span class="flag">-Identity</span> <span class="string">'Domain Admins'</span> <span class="flag">-Recursive</span> |
+  <span class="cmd">Get-ADUser</span> <span class="flag">-Properties</span> Title, Department, Enabled |
+  <span class="cmd">Select</span> Name, SamAccountName, Title, Department, Enabled</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="microsoft graph mguser entra azure ad sign-in user beta cmdlet">
+      <div class="entry-header"><span class="entry-title">Microsoft Graph: User Lookup</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Modern (cloud) replacement for AzureAD / MSOnline. Lists user, license, and recent sign-in.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># Install + connect (browser-based MFA)</span>
+<span class="cmd">Install-Module</span> Microsoft.Graph <span class="flag">-Scope</span> CurrentUser
+<span class="cmd">Connect-MgGraph</span> <span class="flag">-Scopes</span> <span class="string">'User.Read.All'</span>, <span class="string">'AuditLog.Read.All'</span>
+
+<span class="comment"># Get a user with key properties</span>
+<span class="cmd">Get-MgUser</span> <span class="flag">-UserId</span> user@tenant.com <span class="flag">-Property</span> id,displayName,userPrincipalName,accountEnabled,assignedLicenses |
+  <span class="cmd">Format-List</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="microsoft graph signin logs failed mfa risk lookup user">
+      <div class="entry-header"><span class="entry-title">Microsoft Graph: Sign-in Logs</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Last 25 sign-ins for a user, including IP, app, MFA result, conditional access. Premium-licensed tenants only.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-MgAuditLogSignIn</span> <span class="flag">-Filter</span> <span class="string">"userPrincipalName eq 'user@tenant.com'"</span> <span class="flag">-Top</span> 25 |
+  <span class="cmd">Select</span> CreatedDateTime, AppDisplayName, IpAddress,
+    @{N=<span class="string">'Result'</span>;E={$_.Status.ErrorCode}},
+    @{N=<span class="string">'Reason'</span>;E={$_.Status.FailureReason}}</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="gpresult html report group policy resultant set rsop verbose user computer">
+      <div class="entry-header"><span class="entry-title">GPResult HTML Report</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Self-contained HTML report of every applied GPO + winning settings. Open in any browser. ADMIN for /scope computer.</div>
+        <pre><span class="lang-label">CMD</span><span class="comment">:: Current user + computer scope</span>
+<span class="cmd">gpresult</span> <span class="flag">/h</span> %TEMP%\gpresult.html <span class="flag">/f</span>
+<span class="cmd">start</span> %TEMP%\gpresult.html
+
+<span class="comment">:: Specific user (must have logged on this machine)</span>
+<span class="cmd">gpresult</span> <span class="flag">/user</span> DOMAIN\jane <span class="flag">/h</span> %TEMP%\gp-jane.html</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="event logon last user successful 4624 4634 logon type interactive">
+      <div class="entry-header"><span class="entry-title">Last Interactive Logons (Local)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Who actually signed in to this box recently? Filters Security 4624 events for LogonType 2 (interactive) and 11 (CachedInteractive). ADMIN.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-WinEvent</span> <span class="flag">-FilterHashtable</span> @{LogName=<span class="string">'Security'</span>; ID=4624; StartTime=(Get-Date).AddDays(-7)} |
+  <span class="cmd">Where</span> { $_.Properties[8].Value <span class="flag">-in</span> 2,11 } |
+  <span class="cmd">Select</span> TimeCreated,
+    @{N=<span class="string">'Account'</span>;E={$_.Properties[5].Value}},
+    @{N=<span class="string">'LogonType'</span>;E={$_.Properties[8].Value}} |
+  <span class="cmd">Sort</span> TimeCreated <span class="flag">-Descending</span> |
+  <span class="cmd">Select</span> <span class="flag">-First</span> 25</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="local user accounts password expiry never expires lastlogon lockedout">
+      <div class="entry-header"><span class="entry-title">Local Accounts &amp; Password State</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every local user with enabled state, last logon, password-last-set, and the dreaded "PasswordNeverExpires". ADMIN.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-LocalUser</span> |
+  <span class="cmd">Select</span> Name, Enabled, LastLogon, PasswordLastSet,
+    PasswordExpires, PasswordNeverExpires, AccountExpires</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="installed apps software inventory uninstall registry display name version">
+      <div class="entry-header"><span class="entry-title">Installed Apps (Both Hives, Both Architectures)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">More accurate than "Programs and Features" -- pulls 32-bit + 64-bit + per-user uninstall registry entries.</div>
+        <pre><span class="lang-label">PS</span>$keys = <span class="string">'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'</span>,
+  <span class="string">'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'</span>,
+  <span class="string">'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'</span>
+<span class="cmd">Get-ItemProperty</span> $keys <span class="flag">-ErrorAction</span> SilentlyContinue |
+  <span class="cmd">Where</span> DisplayName |
+  <span class="cmd">Select</span> DisplayName, DisplayVersion, Publisher, InstallDate |
+  <span class="cmd">Sort</span> DisplayName</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="ping multiple hosts parallel test-connection foreach throttle network sweep">
+      <div class="entry-header"><span class="entry-title">Parallel Ping Sweep</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Test reachability of many hosts in parallel. PowerShell 7+ for ForEach-Object -Parallel; falls back to RunspaceFactory on 5.1.</div>
+        <pre><span class="lang-label">PS</span>$hosts = <span class="string">'host01'</span>, <span class="string">'host02'</span>, <span class="string">'host03'</span>, <span class="string">'host04'</span>
+$hosts | <span class="cmd">ForEach-Object</span> <span class="flag">-Parallel</span> {
+  [pscustomobject]@{
+    Host = $_
+    Reachable = (Test-Connection $_ <span class="flag">-Count</span> 1 <span class="flag">-Quiet</span>)
+  }
+} <span class="flag">-ThrottleLimit</span> 16</pre>
       </div>
     </div>
   </div>
@@ -1229,6 +1531,117 @@ Get-ScheduledTask | Where-Object { $_.TaskName -match <span class="string">'Push
         <pre><span class="lang-label">CMD</span><span class="cmd">wmic</span> path Win32_PnPSignedDriver get DeviceName, DriverVersion, Manufacturer <span class="flag">/format:</span>table</pre>
       </div>
     </div>
+
+    <div class="entry" data-keywords="get-winevent logon failed bad password 4625 audit security">
+      <div class="entry-header"><span class="entry-title">Logon Failures (Last 24h)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Failed-logon Security events with target account, source IP, and failure reason. ADMIN.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-WinEvent</span> <span class="flag">-FilterHashtable</span> @{LogName=<span class="string">'Security'</span>; ID=4625; StartTime=(Get-Date).AddDays(-1)} |
+  <span class="cmd">Select</span> TimeCreated,
+    @{N=<span class="string">'Account'</span>;E={$_.Properties[5].Value}},
+    @{N=<span class="string">'Source'</span>;E={$_.Properties[19].Value}},
+    @{N=<span class="string">'Reason'</span>;E={$_.Properties[8].Value}}</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="powershell logging script block 4104 audit transcript transcripts lolbin">
+      <div class="entry-header"><span class="entry-title">PowerShell Script Block Logs</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every PowerShell script block executed in the last hour. Catches LOLbins and obfuscated launchers. Requires module/scriptblock logging GPO enabled.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-WinEvent</span> <span class="flag">-FilterHashtable</span> @{LogName=<span class="string">'Microsoft-Windows-PowerShell/Operational'</span>; ID=4104; StartTime=(Get-Date).AddHours(-1)} |
+  <span class="cmd">Select</span> TimeCreated, @{N=<span class="string">'Script'</span>;E={$_.Message.Substring(0, [Math]::Min(200, $_.Message.Length))}}</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="run keys runonce registry hives startup persistence autoruns">
+      <div class="entry-header"><span class="entry-title">Persistence Hives — Run Keys</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every Run / RunOnce key across HKLM, HKCU, and the WOW6432Node. Diff against a known-good baseline to spot persistence.</div>
+        <pre><span class="lang-label">PS</span>$paths = <span class="string">'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run'</span>,
+  <span class="string">'HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce'</span>,
+  <span class="string">'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'</span>,
+  <span class="string">'HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce'</span>,
+  <span class="string">'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'</span>
+$paths | ForEach-Object {
+  <span class="cmd">Get-ItemProperty</span> $_ <span class="flag">-ErrorAction</span> SilentlyContinue |
+    <span class="cmd">Select-Object</span> @{N=<span class="string">'Hive'</span>;E={$_.PSPath}}, *
+}</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="cert store inventory expiry expiring local machine certificate pki thumbprint">
+      <div class="entry-header"><span class="entry-title">LocalMachine Certificate Inventory</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every cert in LocalMachine\My with thumbprint, subject, issuer, and days-to-expiry. Filter for sub-30-day certs to catch impending outages.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-ChildItem</span> Cert:\LocalMachine\My |
+  <span class="cmd">Select</span> Thumbprint, Subject, Issuer, NotAfter,
+    @{N=<span class="string">'DaysLeft'</span>;E={[int]($_.NotAfter - (Get-Date)).TotalDays}} |
+  <span class="cmd">Sort</span> NotAfter</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="certutil dump store root ca trust verify chain pki">
+      <div class="entry-header"><span class="entry-title">Certutil Dump &amp; Verify</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Dump every cert in a named store, or verify a single cert chain (with OCSP/CRL fetch).</div>
+        <pre><span class="lang-label">CMD</span><span class="comment">:: Dump trusted-root store</span>
+<span class="cmd">certutil</span> <span class="flag">-store</span> Root
+
+<span class="comment">:: Verify a cert chain (online check)</span>
+<span class="cmd">certutil</span> <span class="flag">-verify -urlfetch</span> cert.cer</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="userassist explorer recent files registry rot13 user activity forensic launched">
+      <div class="entry-header"><span class="entry-title">User Recent-Activity (UserAssist)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Programs the current user has actually launched. Subkey names are ROT13-encoded. Forensic gold for "what did this user do?"</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-ChildItem</span> <span class="string">'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist'</span> <span class="flag">-Recurse</span> |
+  <span class="cmd">Where-Object</span> { $_.Property -match <span class="string">'Count'</span> } |
+  <span class="cmd">Select</span> PSChildName, Property</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="prefetch superfetch sysmain pf execution evidence binary launched timeline">
+      <div class="entry-header"><span class="entry-title">Prefetch Files (Execution Evidence)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every recently-executed binary leaves a .pf file in C:\Windows\Prefetch with the last-run timestamp. ADMIN to enumerate. The 30 most recent runs:</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-ChildItem</span> C:\Windows\Prefetch\*.pf |
+  <span class="cmd">Sort</span> LastWriteTime <span class="flag">-Descending</span> |
+  <span class="cmd">Select</span> <span class="flag">-First</span> 30 Name, LastWriteTime, CreationTime</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="amcache appcompat shimcache program executed installed forensic">
+      <div class="entry-header"><span class="entry-title">Amcache (Program Inventory)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">The Amcache hive records every program that has run. Live querying needs the hive copied; offline tools (RegRipper, AmcacheParser) parse it best.</div>
+        <pre><span class="lang-label">CMD</span><span class="comment">:: Copy live Amcache for offline analysis</span>
+<span class="cmd">reg save</span> <span class="string">"HKLM\Software\Microsoft\Amcache"</span> %TEMP%\Amcache.hve <span class="flag">/y</span>
+<span class="cmd">copy</span> %TEMP%\Amcache.hve %USERPROFILE%\Desktop\</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="dns cache resolver client cache flushed query log lookup">
+      <div class="entry-header"><span class="entry-title">DNS Client Cache (Resolver)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every name your machine has recently resolved, with TTL. Spot oddball lookups.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-DnsClientCache</span> |
+  <span class="cmd">Select</span> Entry, Type, TimeToLive, Data |
+  <span class="cmd">Sort</span> Entry</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="usb history removable storage usbstor enumeration registry forensic">
+      <div class="entry-header"><span class="entry-title">USB Device History</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every USB mass-storage device ever plugged into this machine, with vendor and serial. ADMIN.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-ChildItem</span> <span class="string">'HKLM:\SYSTEM\CurrentControlSet\Enum\USBSTOR'</span> <span class="flag">-Recurse</span> <span class="flag">-ErrorAction</span> SilentlyContinue |
+  <span class="cmd">Get-ItemProperty</span> <span class="flag">-ErrorAction</span> SilentlyContinue |
+  <span class="cmd">Where-Object</span> { $_.FriendlyName } |
+  <span class="cmd">Select</span> FriendlyName, PSChildName</pre>
+      </div>
+    </div>
   </div>
 
   <!-- ═══════════ REMOTE & FLEET ═══════════ -->
@@ -1270,6 +1683,188 @@ Get-ScheduledTask | Where-Object { $_.TaskName -match <span class="string">'Push
       <div class="entry-body">
         <div class="entry-desc">Run gpresult on a remote machine without RDPing in.</div>
         <pre><span class="lang-label">PS</span><span class="cmd">Invoke-Command</span> <span class="flag">-ComputerName</span> $target <span class="flag">-ScriptBlock</span> { <span class="cmd">gpresult</span> <span class="flag">/r</span> }</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="quser remote sessions logged on rdp interactive who">
+      <div class="entry-header"><span class="entry-title">Remote Logged-On Users (Quser)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Who is currently logged in to a remote machine? Works without WinRM as long as RPC is open.</div>
+        <pre><span class="lang-label">CMD</span><span class="cmd">quser</span> <span class="flag">/server:</span>HOSTNAME
+
+<span class="comment">:: Or against a list:</span>
+<span class="cmd">for /f</span> %h in (hosts.txt) do <span class="cmd">@quser</span> <span class="flag">/server:</span>%h 2&gt;nul</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="psexec remote command sysinternals execute interactive system">
+      <div class="entry-header"><span class="entry-title">PsExec Remote Command</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Run a command on a remote machine when WinRM isn't available. PsExec uses SMB + Service Control Manager. ADMIN.</div>
+        <pre><span class="lang-label">CMD</span><span class="comment">:: Run as the current admin user (interactive)</span>
+<span class="cmd">psexec</span> \\HOST <span class="flag">-i</span> cmd
+
+<span class="comment">:: Run as SYSTEM (-s) without UI (good for scripts)</span>
+<span class="cmd">psexec</span> \\HOST <span class="flag">-s</span> ipconfig <span class="flag">/all</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="parallel invoke command throttle multiple hosts script block fleet">
+      <div class="entry-header"><span class="entry-title">Throttled Fleet Command</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Run a script block against many hosts at once with a sane concurrency limit. Aggregates all results into a single object pipeline.</div>
+        <pre><span class="lang-label">PS</span>$hosts = Get-Content hosts.txt
+<span class="cmd">Invoke-Command</span> <span class="flag">-ComputerName</span> $hosts <span class="flag">-ThrottleLimit</span> 32 <span class="flag">-ScriptBlock</span> {
+  [pscustomobject]@{
+    Host    = $env:COMPUTERNAME
+    Uptime  = (Get-Date) - (Get-CimInstance Win32_OperatingSystem).LastBootUpTime
+    PendReb = Test-Path <span class="string">'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending'</span>
+  }
+} | <span class="cmd">Sort</span> Host</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="winrm enable trustedhosts kerberos basic auth psremoting fleet setup">
+      <div class="entry-header"><span class="entry-title">Enable / Trust WinRM</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">When PSRemoting is off, this turns it on with sane firewall rules. TrustedHosts is for workgroup / cross-domain scenarios. ADMIN.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># Enable WinRM with default firewall + listener</span>
+<span class="cmd">Enable-PSRemoting</span> <span class="flag">-Force</span>
+
+<span class="comment"># Trust specific hosts (comma-separated, * for all)</span>
+<span class="cmd">Set-Item</span> WSMan:\localhost\Client\TrustedHosts <span class="flag">-Value</span> <span class="string">'host01,host02'</span> <span class="flag">-Force</span>
+
+<span class="comment"># Verify listener and trusted hosts</span>
+<span class="cmd">winrm</span> get winrm/config/client</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SECURITY / DEFENDER ═══════════ -->
+  <div class="section" data-cat="security" id="sec-security">
+    <div class="section-title">
+      <span class="icon">🛡</span> Security &amp; Defender<span class="count"></span>
+    </div>
+
+    <div class="entry" data-keywords="defender threat detection history malware quarantine scan result get-mpthreatdetection">
+      <div class="entry-header"><span class="entry-title">Defender Threat History</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every malware detection Defender has logged on this machine: when, what, where, action taken.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-MpThreatDetection</span> |
+  <span class="cmd">Select</span> InitialDetectionTime, ThreatID, Resources,
+    @{N=<span class="string">'Action'</span>;E={$_.ActionSuccess}} |
+  <span class="cmd">Sort</span> InitialDetectionTime <span class="flag">-Descending</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="defender exclusion path process extension whitelist add-mppreference get-mppreference">
+      <div class="entry-header"><span class="entry-title">Defender Exclusions Audit</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every excluded path, process, and extension. Common attacker hiding spots and the #1 misconfig that lets ransomware skip AV.</div>
+        <pre><span class="lang-label">PS</span>$pref = <span class="cmd">Get-MpPreference</span>
+[pscustomobject]@{
+  Paths      = $pref.ExclusionPath
+  Processes  = $pref.ExclusionProcess
+  Extensions = $pref.ExclusionExtension
+} | <span class="cmd">Format-List</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="defender attack surface reduction asr rules audit block mode">
+      <div class="entry-header"><span class="entry-title">Attack Surface Reduction (ASR) Rules</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Each ASR rule has a GUID and a state (0 = Off, 1 = Block, 2 = Audit, 6 = Warn). Verify Block mode in production.</div>
+        <pre><span class="lang-label">PS</span>$pref = <span class="cmd">Get-MpPreference</span>
+$ids = $pref.AttackSurfaceReductionRules_Ids
+$acts = $pref.AttackSurfaceReductionRules_Actions
+0..($ids.Count - 1) | <span class="cmd">ForEach-Object</span> {
+  [pscustomobject]@{ RuleId = $ids[$_]; Mode = $acts[$_] }
+}</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="firewall rules profile inbound outbound enabled netfirewallrule">
+      <div class="entry-header"><span class="entry-title">Firewall Rule Inventory</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Every enabled inbound rule with its program, port, and profile (Domain / Private / Public). ADMIN for full detail.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-NetFirewallRule</span> <span class="flag">-Direction</span> Inbound <span class="flag">-Enabled</span> True |
+  <span class="cmd">Get-NetFirewallApplicationFilter</span> |
+  <span class="cmd">Select</span> @{N=<span class="string">'Rule'</span>;E={$_.InstanceID}}, Program |
+  <span class="cmd">Sort</span> Rule</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="audit policy auditpol category subcategory logon process tracking forensic">
+      <div class="entry-header"><span class="entry-title">Audit Policy (Effective)</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">What is actually being audited on this machine? Confirms that Logon, Object Access, Process Creation, etc. are recording. ADMIN.</div>
+        <pre><span class="lang-label">CMD</span><span class="cmd">auditpol</span> <span class="flag">/get /category:</span>*
+
+<span class="comment">:: Just one category</span>
+<span class="cmd">auditpol</span> <span class="flag">/get /category:</span><span class="string">"Logon/Logoff"</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="applocker policy effective rules executable script msi packaged appid">
+      <div class="entry-header"><span class="entry-title">AppLocker Effective Policy</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">The effective AppLocker policy is the merge of local + GPO. Dump it to XML to diff against expected.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># Effective policy as XML</span>
+<span class="cmd">Get-AppLockerPolicy</span> <span class="flag">-Effective -Xml</span> | <span class="cmd">Out-File</span> applocker.xml
+
+<span class="comment"># Quick test: would this binary be allowed to run?</span>
+<span class="cmd">Get-AppLockerFileInformation</span> <span class="flag">-Path</span> C:\Tools\thing.exe |
+  <span class="cmd">Test-AppLockerPolicy</span> <span class="flag">-PolicyObject</span> (Get-AppLockerPolicy <span class="flag">-Effective</span>) <span class="flag">-User</span> $env:USERNAME</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="lsa protected mode runs as ppl credential guard rg dump mimikatz hardening">
+      <div class="entry-header"><span class="entry-title">LSA Protection &amp; Credential Guard Status</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">RunAsPPL = LSA running protected (blocks Mimikatz-style dumps). DeviceGuard / CredentialGuard show VBS-based protections.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># LSA protected-process state</span>
+<span class="cmd">Get-ItemProperty</span> <span class="string">'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa'</span> <span class="flag">-Name</span> RunAsPPL <span class="flag">-ErrorAction</span> SilentlyContinue
+
+<span class="comment"># Credential Guard / VBS</span>
+<span class="cmd">Get-CimInstance</span> <span class="flag">-ClassName</span> Win32_DeviceGuard <span class="flag">-Namespace</span> root\Microsoft\Windows\DeviceGuard |
+  <span class="cmd">Select</span> SecurityServicesRunning, VirtualizationBasedSecurityStatus</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="smart screen status defender app browser policy reputation">
+      <div class="entry-header"><span class="entry-title">SmartScreen Status</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Whether SmartScreen is enabled for Edge, Store apps, and the OS shell. Off = a known weak link in phishing defenses.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># OS / Explorer SmartScreen</span>
+<span class="cmd">Get-ItemProperty</span> <span class="string">'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer'</span> <span class="flag">-Name</span> SmartScreenEnabled <span class="flag">-ErrorAction</span> SilentlyContinue
+
+<span class="comment"># Edge SmartScreen</span>
+<span class="cmd">Get-ItemProperty</span> <span class="string">'HKLM:\SOFTWARE\Policies\Microsoft\Edge'</span> <span class="flag">-Name</span> SmartScreenEnabled <span class="flag">-ErrorAction</span> SilentlyContinue</pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="quick scan full scan defender mpcmdrun trigger manual threat">
+      <div class="entry-header"><span class="entry-title">Trigger Defender Scan</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Force-run a quick or full scan from CLI. ADMIN.</div>
+        <pre><span class="lang-label">PS</span><span class="comment"># Quick scan (~5 min)</span>
+<span class="cmd">Start-MpScan</span> <span class="flag">-ScanType</span> QuickScan
+
+<span class="comment"># Full scan (hours)</span>
+<span class="cmd">Start-MpScan</span> <span class="flag">-ScanType</span> FullScan
+
+<span class="comment"># Update signatures first</span>
+<span class="cmd">Update-MpSignature</span></pre>
+      </div>
+    </div>
+
+    <div class="entry" data-keywords="tpm bitlocker boot security secure platform module attestation">
+      <div class="entry-header"><span class="entry-title">TPM &amp; Secure Boot Status</span></div>
+      <div class="entry-body">
+        <div class="entry-desc">Confirms hardware security baseline: TPM present, ready, owned + Secure Boot enabled. Required for Windows 11 and BitLocker silent enable.</div>
+        <pre><span class="lang-label">PS</span><span class="cmd">Get-Tpm</span> | <span class="cmd">Select</span> TpmPresent, TpmReady, TpmEnabled, TpmOwned,
+  ManufacturerVersion, ManagedAuthLevel
+<span class="cmd">Confirm-SecureBootUEFI</span></pre>
       </div>
     </div>
   </div>
